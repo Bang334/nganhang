@@ -1,0 +1,51 @@
+@startuml Activity - Thẩm định vay
+
+title Phần 2: Thẩm định hồ sơ vay
+
+|Cán bộ tín dụng|
+start
+:Nhận hồ sơ mới;
+:Kiểm tra tính đầy đủ;
+
+if (Hồ sơ đầy đủ?) then (no)
+  :Yêu cầu bổ sung;
+  |Khách hàng|
+  :Upload tài liệu bổ sung;
+  |Cán bộ tín dụng|
+  :Kiểm tra lại;
+else (yes)
+endif
+
+:Bắt đầu thẩm định;
+
+fork
+  :Tính DTI;
+  note right
+    DTI = Nợ / Thu nhập
+    Yêu cầu: < 60%
+  end note
+fork again
+  :Tra cứu CIC;
+  note right
+    - Lịch sử tín dụng
+    - Điểm credit
+    - Nợ xấu
+  end note
+fork again
+  if (Có tài sản TC?) then (yes)
+    :Khảo sát tài sản;
+    :Định giá;
+    :Tính LTV;
+    note right
+      LTV = Vay / Giá trị TS
+      Yêu cầu: < 70-85%
+    end note
+  endif
+end fork
+
+:Tổng hợp kết quả;
+
+stop
+
+@enduml
+

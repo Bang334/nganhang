@@ -1,0 +1,91 @@
+@startuml Class Diagram
+
+title Hệ thống Quản lý Ngân hàng - Class Diagram (Chính)
+
+class Customer {
+  - customer_id: int
+  - customer_code: string
+  - full_name: string
+  - email: string
+  - phone: string
+  - monthly_income: decimal
+  --
+  + getAccounts(): List
+  + getLoans(): List
+  + getCreditScore(): int
+}
+
+class Account {
+  - account_id: int
+  - account_number: string
+  - balance: decimal
+  - status: enum
+  --
+  + deposit(amount): bool
+  + withdraw(amount): bool
+  + transfer(to, amount): bool
+}
+
+class Transaction {
+  - transaction_id: bigint
+  - transaction_code: string
+  - amount: decimal
+  - fee: decimal
+  - status: enum
+  --
+  + execute(): bool
+  + rollback(): bool
+}
+
+class SavingsDeposit {
+  - deposit_id: int
+  - principal_amount: decimal
+  - interest_rate: decimal
+  - maturity_date: date
+  - status: enum
+  --
+  + calculateInterest(): decimal
+  + mature(): bool
+}
+
+class Loan {
+  - loan_id: int
+  - loan_number: string
+  - principal_amount: decimal
+  - interest_rate: decimal
+  - outstanding_balance: decimal
+  - status: enum
+  --
+  + approve(): bool
+  + disburse(): bool
+  + repay(amount): bool
+}
+
+class Collateral {
+  - collateral_id: int
+  - collateral_name: string
+  - appraised_value: decimal
+  - status: enum
+  --
+  + appraise(value): bool
+  + markInUse(): bool
+}
+
+class CreditScore {
+  - score_id: int
+  - score: int
+  - grade: enum
+  --
+  + calculate(): int
+}
+
+Customer "1" -- "*" Account
+Customer "1" -- "*" Loan
+Customer "1" -- "*" Collateral
+Customer "1" -- "0..1" CreditScore
+Account "1" -- "*" Transaction
+Account "1" -- "*" SavingsDeposit
+Loan "0..1" -- "0..1" Collateral
+
+@enduml
+

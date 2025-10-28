@@ -1,0 +1,82 @@
+@startuml Use Case Diagram
+
+title Hệ thống Quản lý Ngân hàng - Use Case
+
+left to right direction
+
+actor "Khách hàng" as Customer
+actor "Giao dịch viên" as Teller
+actor "Cán bộ tín dụng" as LoanOfficer
+actor "Quản trị viên" as Admin
+
+rectangle "Hệ thống Ngân hàng" {
+  
+  package "Quản lý Tài khoản" {
+    usecase "Xem tài khoản" as UC1
+    usecase "Xem số dư" as UC2
+    usecase "Xem lịch sử GD" as UC3
+    usecase "Mở tài khoản" as UC4
+    usecase "Đóng tài khoản" as UC5
+  }
+  
+  package "Giao dịch" {
+    usecase "Nạp tiền" as UC6
+    usecase "Rút tiền" as UC7
+    usecase "Chuyển khoản" as UC8
+  }
+  
+  package "Tiết kiệm" {
+    usecase "Mở sổ TK" as UC9
+    usecase "Đáo hạn TK" as UC10
+    usecase "Rút trước hạn" as UC11
+  }
+  
+  package "Vay vốn" {
+    usecase "Đăng ký vay" as UC12
+    usecase "Thẩm định" as UC13
+    usecase "Phê duyệt vay" as UC14
+    usecase "Giải ngân" as UC15
+    usecase "Trả nợ" as UC16
+  }
+  
+  package "Tài sản" {
+    usecase "Đăng ký TS" as UC17
+    usecase "Thẩm định TS" as UC18
+  }
+  
+  package "Quản trị" {
+    usecase "Quản lý user" as UC19
+    usecase "Cấu hình" as UC20
+    usecase "Báo cáo" as UC21
+  }
+}
+
+Customer --> UC1
+Customer --> UC2
+Customer --> UC3
+Customer --> UC8
+Customer --> UC9
+Customer --> UC10
+Customer --> UC12
+Customer --> UC16
+Customer --> UC17
+
+Teller --> UC4
+Teller --> UC5
+Teller --> UC6
+Teller --> UC7
+
+LoanOfficer --> UC13
+LoanOfficer --> UC14
+LoanOfficer --> UC15
+LoanOfficer --> UC18
+
+Admin --> UC19
+Admin --> UC20
+Admin --> UC21
+
+UC8 .> UC2 : include
+UC16 .> UC2 : include
+
+@enduml
+

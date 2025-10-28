@@ -1,0 +1,41 @@
+@startuml Activity - Đáo hạn: Tái tục gốc + lãi
+
+title Đáo hạn TK - Lựa chọn 3: Tái tục gốc + lãi
+
+|Hệ thống|
+start
+:Phát hiện sổ đáo hạn;
+:Tính lãi;
+:Tổng = Gốc + Lãi;
+
+|Khách hàng|
+:Chọn "Tái tục gốc + lãi";
+
+|Hệ thống|
+:START TRANSACTION;
+
+:Đóng sổ cũ;
+:UPDATE old_deposit\nstatus = CLOSED;
+
+:Lấy lãi suất hiện tại;
+
+:Tính lãi dự kiến kỳ mới;
+note right
+  Gốc mới = Gốc cũ + Lãi cũ
+  Lãi mới = Gốc mới × LS mới
+end note
+
+:Tạo sổ mới;
+:INSERT new_deposit\nprincipal = old_total;
+
+:COMMIT;
+
+:Gửi SMS thông báo;
+
+|Khách hàng|
+:Sổ mới với gốc lớn hơn;
+
+stop
+
+@enduml
+

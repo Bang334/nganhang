@@ -1,0 +1,54 @@
+@startuml Activity - Phê duyệt vay
+
+title Phần 3: Quyết định phê duyệt
+
+|Cán bộ tín dụng|
+start
+:Xem kết quả thẩm định;
+
+if (DTI < 60%?) then (no)
+  :Từ chối - DTI cao;
+  stop
+endif
+
+if (Credit Score >= 600?) then (no)
+  :Từ chối - Điểm thấp;
+  stop
+endif
+
+if (LTV <= 85%?) then (no)
+  :Từ chối - LTV cao;
+  stop
+endif
+
+if (Có nợ xấu?) then (yes)
+  :Từ chối - Nợ xấu;
+  stop
+endif
+
+:Tất cả điều kiện OK;
+
+if (Số tiền > Thẩm quyền?) then (yes)
+  |Quản lý chi nhánh|
+  :Xét duyệt cấp cao;
+  if (Đồng ý?) then (no)
+    :Từ chối;
+    stop
+  endif
+endif
+
+|Cán bộ tín dụng|
+:Phê duyệt khoản vay;
+
+|Hệ thống|
+:UPDATE Loans\nSET status = APPROVED;
+:Gửi SMS phê duyệt;
+
+|Khách hàng|
+:Nhận thông báo;
+:Xem thông tin khoản vay;
+
+stop
+
+@enduml
+

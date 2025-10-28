@@ -1,0 +1,80 @@
+@startuml ER Diagram
+
+title Hệ thống Quản lý Ngân hàng - ER Diagram (Rút gọn)
+
+entity Customers {
+  * customer_id: INT <<PK>>
+  --
+  customer_code: VARCHAR
+  full_name: VARCHAR
+  email: VARCHAR
+  phone: VARCHAR
+  monthly_income: DECIMAL
+}
+
+entity Accounts {
+  * account_id: INT <<PK>>
+  --
+  account_number: VARCHAR
+  customer_id: INT <<FK>>
+  balance: DECIMAL
+  status: ENUM
+}
+
+entity Transactions {
+  * transaction_id: BIGINT <<PK>>
+  --
+  transaction_code: VARCHAR
+  from_account_id: INT <<FK>>
+  to_account_id: INT <<FK>>
+  amount: DECIMAL
+  status: ENUM
+}
+
+entity SavingsDeposits {
+  * deposit_id: INT <<PK>>
+  --
+  account_id: INT <<FK>>
+  principal_amount: DECIMAL
+  interest_rate: DECIMAL
+  maturity_date: DATE
+  status: ENUM
+}
+
+entity Loans {
+  * loan_id: INT <<PK>>
+  --
+  loan_number: VARCHAR
+  customer_id: INT <<FK>>
+  principal_amount: DECIMAL
+  outstanding_balance: DECIMAL
+  status: ENUM
+}
+
+entity Collaterals {
+  * collateral_id: INT <<PK>>
+  --
+  customer_id: INT <<FK>>
+  collateral_name: VARCHAR
+  appraised_value: DECIMAL
+  status: ENUM
+}
+
+entity CreditScores {
+  * score_id: INT <<PK>>
+  --
+  customer_id: INT <<FK>>
+  score: INT
+  grade: ENUM
+}
+
+Customers ||--o{ Accounts
+Customers ||--o{ Loans
+Customers ||--o{ Collaterals
+Customers ||--o| CreditScores
+Accounts ||--o{ Transactions
+Accounts ||--o{ SavingsDeposits
+Loans }o--o| Collaterals
+
+@enduml
+

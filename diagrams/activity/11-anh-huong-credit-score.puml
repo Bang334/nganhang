@@ -1,0 +1,57 @@
+@startuml Activity - Ảnh hưởng Credit Score
+
+title Ảnh hưởng Credit Score đến điều kiện vay
+
+start
+
+:Khách hàng đăng ký vay;
+:Lấy Credit Score;
+
+if (Score >= 900?) then (AAA)
+  #LightGreen:Hạng AAA;
+  :Lãi suất: 7%;
+  :Hạn mức: 100%;
+  :LTV: 85%;
+  :Duyệt: 2-3 ngày;
+  :Phí: 0.1%;
+  stop
+  
+elseif (Score >= 800?) then (AA)
+  #LightGreen:Hạng AA;
+  :Lãi suất: 7.5%;
+  :Hạn mức: 90%;
+  :LTV: 80%;
+  :Duyệt: 3-5 ngày;
+  stop
+  
+elseif (Score >= 700?) then (A)
+  #LightBlue:Hạng A;
+  :Lãi suất: 8%;
+  :Hạn mức: 80%;
+  :LTV: 75%;
+  :Duyệt: 5-7 ngày;
+  stop
+  
+elseif (Score >= 600?) then (BBB)
+  #Yellow:Hạng BBB;
+  :Lãi suất: 8.5%;
+  :Hạn mức: 70%;
+  :Xét duyệt kỹ;
+  stop
+  
+elseif (Score >= 500?) then (BB)
+  #Orange:Hạng BB;
+  :Lãi suất: 9.5%;
+  :Hạn mức: 60%;
+  :Cần bảo lãnh;
+  stop
+  
+else (< 500)
+  #Red:Từ chối;
+  :Không đủ điều kiện vay;
+  :Đề xuất cải thiện điểm;
+  stop
+endif
+
+@enduml
+

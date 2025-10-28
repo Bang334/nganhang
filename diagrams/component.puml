@@ -1,0 +1,47 @@
+@startuml Component Diagram
+
+title Kiến trúc hệ thống - Component Diagram
+
+package "Frontend" {
+  [Web App] as Web
+  [Mobile App] as Mobile
+}
+
+package "Backend" {
+  [API Gateway] as Gateway
+  [Auth Service] as Auth
+  [Account Service] as AccSvc
+  [Loan Service] as LoanSvc
+  [Transaction Service] as TxnSvc
+}
+
+package "Data" {
+  database "MySQL" as DB
+  database "Redis Cache" as Cache
+}
+
+package "External" {
+  [NAPAS] as Interbank
+  [CIC] as CIC
+  [SMS Gateway] as SMS
+}
+
+Web --> Gateway
+Mobile --> Gateway
+
+Gateway --> Auth
+Gateway --> AccSvc
+Gateway --> LoanSvc
+Gateway --> TxnSvc
+
+AccSvc --> DB
+LoanSvc --> DB
+TxnSvc --> DB
+
+AccSvc ..> Cache
+LoanSvc ..> CIC
+TxnSvc ..> Interbank
+AccSvc ..> SMS
+
+@enduml
+

@@ -1,0 +1,54 @@
+@startuml Credit Score State
+
+title State Machine: Credit Score Grades
+
+[*] --> New : Đăng ký
+
+New --> A : Tính điểm ban đầu\n(700-799)
+
+A --> AA : Cải thiện\n(trả nợ tốt)
+A --> BBB : Giảm nhẹ\n(trả chậm 1-2 lần)
+
+AA --> AAA : Xuất sắc liên tục
+AA --> A : Trả chậm
+
+AAA --> AA : Trả chậm 1 lần
+
+BBB --> A : Cải thiện
+BBB --> BB : Quá hạn 10-20 ngày
+
+BB --> BBB : Trả đúng 3 tháng
+BB --> B : Quá hạn >30 ngày
+
+B --> BB : Cải thiện
+B --> CCC : Nợ xấu (>90 ngày)
+
+CCC --> Recovery : Xử lý nợ xấu
+
+Recovery --> BBB : Phục hồi\n(6-12 tháng)
+
+note right of AAA
+  900-1000
+  Lãi suất: 7%
+  Hạn mức: 100%
+end note
+
+note right of A
+  700-799
+  Lãi suất: 8%
+  Hạn mức: 80%
+end note
+
+note right of BBB
+  600-699
+  Lãi suất: 8.5%
+  Hạn mức: 70%
+end note
+
+note right of CCC
+  < 400
+  Từ chối vay
+end note
+
+@enduml
+

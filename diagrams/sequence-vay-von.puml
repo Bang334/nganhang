@@ -1,0 +1,41 @@
+@startuml Vay vốn
+
+title Nghiệp vụ: Đăng ký và Phê duyệt khoản vay
+
+actor Customer
+actor LoanOfficer
+participant System
+participant CIC
+participant DB
+
+== Đăng ký ==
+Customer -> System: Đăng ký vay
+System -> DB: CREATE loan (PENDING)
+DB --> System: loan_id
+System --> Customer: Hồ sơ đã tạo
+
+== Thẩm định ==
+LoanOfficer -> System: Xem hồ sơ
+System -> CIC: Check credit history
+CIC --> System: Credit score: 750
+System -> System: Calculate LTV, DTI
+System --> LoanOfficer: Hiển thị kết quả
+
+alt Score >= 700 AND LTV OK
+  LoanOfficer -> System: Phê duyệt
+  System -> DB: UPDATE loan\nSET status = APPROVED
+  System --> Customer: SMS phê duyệt
+  
+  == Giải ngân ==
+  LoanOfficer -> System: Giải ngân
+  System -> DB: UPDATE account\nbalance += amount
+  System -> DB: UPDATE loan\nstatus = ACTIVE
+  System --> Customer: Tiền đã chuyển
+else Score < 700 OR LTV high
+  LoanOfficer -> System: Từ chối
+  System -> DB: UPDATE loan\nSET status = REJECTED
+  System --> Customer: Thông báo từ chối
+end
+
+@enduml
+
