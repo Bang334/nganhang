@@ -1,0 +1,133 @@
+@startuml Component Diagram
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title Hệ thống Quản lý Ngân hàng - Component Diagram
+
+package "Presentation Layer" {
+    component [Customer Portal] as CustomerPortal
+    component [Teller Portal] as TellerPortal
+    component [Loan Officer Portal] as LoanOfficerPortal
+    component [Admin Portal] as AdminPortal
+}
+
+package "Application Layer" {
+    component [Authentication\nComponent] as AuthComponent
+    component [Account\nManagement] as AccountMgmt
+    component [Transaction\nProcessing] as TransactionProc
+    component [Savings\nManagement] as SavingsMgmt
+    component [Loan\nManagement] as LoanMgmt
+    component [Credit Score\nCalculator] as CreditScoreCalc
+    component [Collateral\nManagement] as CollateralMgmt
+    component [Card\nManagement] as CardMgmt
+    component [Reporting\nService] as ReportingService
+    component [Notification\nService] as NotificationService
+}
+
+package "Business Logic Layer" {
+    component [Account\nService] as AccountService
+    component [Transaction\nService] as TransactionService
+    component [Savings\nService] as SavingsService
+    component [Loan\nService] as LoanService
+    component [Credit\nEvaluation] as CreditEval
+    component [Interest\nCalculator] as InterestCalc
+    component [LTV\nCalculator] as LTVCalc
+    component [Payment\nScheduler] as PaymentScheduler
+}
+
+package "Data Access Layer" {
+    component [Account\nRepository] as AccountRepo
+    component [Transaction\nRepository] as TransactionRepo
+    component [Savings\nRepository] as SavingsRepo
+    component [Loan\nRepository] as LoanRepo
+    component [Customer\nRepository] as CustomerRepo
+    component [Employee\nRepository] as EmployeeRepo
+}
+
+package "Database" {
+    database "MySQL\nDatabase" as MySQLDB
+}
+
+' Presentation to Application
+CustomerPortal --> AuthComponent
+CustomerPortal --> AccountMgmt
+CustomerPortal --> TransactionProc
+CustomerPortal --> SavingsMgmt
+CustomerPortal --> LoanMgmt
+
+TellerPortal --> AuthComponent
+TellerPortal --> AccountMgmt
+TellerPortal --> TransactionProc
+TellerPortal --> CardMgmt
+
+LoanOfficerPortal --> AuthComponent
+LoanOfficerPortal --> LoanMgmt
+LoanOfficerPortal --> CreditScoreCalc
+LoanOfficerPortal --> CollateralMgmt
+
+AdminPortal --> AuthComponent
+AdminPortal --> ReportingService
+AdminPortal --> AccountMgmt
+
+' Application to Business Logic
+AccountMgmt --> AccountService
+TransactionProc --> TransactionService
+SavingsMgmt --> SavingsService
+LoanMgmt --> LoanService
+CreditScoreCalc --> CreditEval
+LoanMgmt --> LTVCalc
+SavingsMgmt --> InterestCalc
+LoanMgmt --> PaymentScheduler
+
+' Business Logic to Data Access
+AccountService --> AccountRepo
+TransactionService --> TransactionRepo
+SavingsService --> SavingsRepo
+LoanService --> LoanRepo
+AccountService --> CustomerRepo
+LoanService --> CustomerRepo
+
+' Data Access to Database
+AccountRepo --> MySQLDB
+TransactionRepo --> MySQLDB
+SavingsRepo --> MySQLDB
+LoanRepo --> MySQLDB
+CustomerRepo --> MySQLDB
+EmployeeRepo --> MySQLDB
+
+' Cross-cutting concerns
+NotificationService --> MySQLDB
+ReportingService --> MySQLDB
+
+note right of CustomerPortal
+  **Customer Portal:**
+  - Dashboard
+  - Quản lý tài khoản
+  - Chuyển khoản
+  - Tiết kiệm
+  - Khoản vay
+end note
+
+note right of LoanService
+  **Loan Service:**
+  - Thẩm định vay
+  - Tính LTV
+  - Quản lý lịch trả nợ
+  - Xử lý nợ quá hạn
+end note
+
+note right of MySQLDB
+  **Database:**
+  - 19 bảng chính
+  - 2 bảng phụ (lịch sử)
+  - Triggers tự động
+  - Stored Procedures
+  - Views tổng hợp
+  
+  **Bảng phụ:**
+  - CreditScoreHistory
+  - LoanPayments
+end note
+
+@enduml
+

@@ -1,0 +1,62 @@
+@startuml Đăng ký Vay
+autonumber
+title Luồng Đăng ký Khoản Vay
+
+actor "Khách hàng" as Customer
+participant "Web/App" as App
+participant "System" as System
+database "Database" as DB
+
+Customer -> App: Chọn "Đăng ký vay"
+App -> System: Load thông tin vay
+
+System -> DB: SELECT * FROM LoanTypes\nWHERE status = 'ACTIVE'
+DB --> System: Danh sách loại vay
+
+System -> DB: SELECT * FROM LoanInterestRates\nWHERE status = 'ACTIVE'
+DB --> System: Lãi suất cho vay
+
+System --> App: Hiển thị form đăng ký
+
+Customer -> App: Nhập thông tin khoản vay\n(Số tiền, kỳ hạn, mục đích)
+App -> System: Tính lãi suất và khoản trả hàng tháng
+System --> App: Kết quả tính toán
+
+alt Vay có thế chấp
+    Customer -> App: Chọn tài sản thế chấp
+    
+    alt Tài sản đã có
+        App -> System: Load danh sách tài sản
+        System -> DB: SELECT * FROM Collaterals\nWHERE customer_id = ? AND status = 'AVAILABLE'
+        DB --> System: Danh sách tài sản
+        System --> App: Hiển thị tài sản
+        Customer -> App: Chọn tài sản
+    else Đăng ký tài sản mới
+        Customer -> App: Nhập thông tin tài sản\n(Loại, giá trị, chứng từ)
+        App -> System: Create Collateral
+        System -> DB: INSERT Collaterals\n(status = 'PENDING')
+        DB --> System: collateral_id
+    end
+    
+    App -> System: Tính LTV ratio
+    System --> App: LTV = (Loan Amount / Collateral Value) * 100%
+end
+
+Customer -> App: Xác nhận đăng ký
+App -> System: Submit Loan Application
+
+System -> DB: BEGIN TRANSACTION
+
+System -> DB: INSERT Loans\n(status = 'PENDING')
+DB --> System: loan_id
+
+System -> DB: UPDATE Collaterals\nSET status = 'IN_USE'\nWHERE collateral_id = ?
+DB --> System: OK
+
+System -> DB: COMMIT
+
+System --> App: Đăng ký thành công\n(Mã hồ sơ vay)
+App --> Customer: Hiển thị mã hồ sơ\nvà thông báo chờ duyệt
+
+@enduml
+

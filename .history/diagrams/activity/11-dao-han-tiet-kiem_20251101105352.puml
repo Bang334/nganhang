@@ -1,0 +1,250 @@
+@startuml Đáo hạn Tiết kiệm
+title Activity Diagram - Đáo hạn Sổ Tiết kiệm (Savings Maturity)
+
+|Hệ thống (Scheduled Job)|
+start
+:Chạy job hàng ngày;
+note right
+Kiểm tra các sổ tiết kiệm
+sắp đến maturity_date
+end note
+
+:SELECT savings WHERE
+maturity_date <= TODAY + 7
+AND status = 'ACTIVE';
+
+if (Có sổ sắp đáo hạn?) then (không)
+  :Không có việc gì;
+  stop
+else (có)
+  :Gửi thông báo cho khách hàng;
+  note right
+  "Sổ tiết kiệm của bạn sẽ đáo hạn
+  vào ngày X. Vui lòng chọn:
+  - Rút tiền về tài khoản
+  - Tái tục sổ tiết kiệm"
+  end note
+  
+  :Đợi đến maturity_date;
+  
+  if (Đến ngày đáo hạn?) then (chưa)
+    stop
+  else (rồi)
+    :UPDATE SavingsDeposit
+    status = 'MATURED';
+    
+    |Khách hàng|
+    :Nhận thông báo đáo hạn;
+    :Đăng nhập hệ thống;
+    :Xem chi tiết sổ tiết kiệm;
+    
+    |Hệ thống|
+    :Hiển thị thông tin đáo hạn;
+    note right
+    - Số tiền gốc
+    - Lãi đã tích lũy
+    - Tổng tiền nhận được
+    - Tùy chọn xử lý
+    end note
+    
+    |Khách hàng|
+    if (Có auto_renew = 'YES'?) then (có)
+      partition "Tự động Tái tục" {
+        |Hệ thống|
+        :Tự động xử lý theo thiết lập;
+        note right
+        Đã chọn trước:
+        - Tái tục gốc
+        - Tái tục gốc + lãi
+        end note
+        
+        :BEGIN TRANSACTION;
+        
+        if (Loại tái tục?) then (Tái tục GỐC)
+          :Tính lãi đã tích lũy;
+          :UPDATE Account balance (+interest);
+          :INSERT Transaction (Trả lãi);
+          
+          :Tạo SavingsDeposit mới;
+          note right
+          - principal_amount = gốc cũ
+          - term_months = kỳ hạn mới
+          - start_date = TODAY
+          - maturity_date = TODAY + term
+          - status = 'ACTIVE'
+          end note
+          
+          :INSERT SavingsTransaction
+          (type = 'RENEWAL');
+          
+          :UPDATE SavingsDeposit cũ
+          status = 'CLOSED';
+          
+        else (Tái tục GỐC + LÃI)
+          :Tính tổng gốc + lãi;
+          
+          :Tạo SavingsDeposit mới;
+          note right
+          - principal_amount = gốc + lãi
+          - term_months = kỳ hạn mới
+          - start_date = TODAY
+          - maturity_date = TODAY + term
+          - status = 'ACTIVE'
+          end note
+          
+          :INSERT SavingsTransaction
+          (type = 'RENEWAL');
+          
+          :UPDATE SavingsDeposit cũ
+          status = 'CLOSED';
+        endif
+        
+        :COMMIT;
+        
+        |Khách hàng|
+        :Nhận thông báo tái tục thành công;
+        :Nhận số sổ tiết kiệm mới;
+        stop
+      }
+      
+    else (không - Xử lý thủ công)
+      |Khách hàng|
+      :Chọn cách xử lý;
+      
+      if (Lựa chọn?) then (Rút tiền về TK)
+        partition "Rút tiền về Tài khoản" {
+          :Chọn "Rút về tài khoản";
+          
+          |Hệ thống|
+          :Tính tổng tiền nhận;
+          note right
+          Total = principal_amount 
+                + total_interest_earned
+          end note
+          
+          :Hiển thị preview;
+          
+          |Khách hàng|
+          :Xác nhận rút tiền;
+          
+          |Hệ thống|
+          :BEGIN TRANSACTION;
+          
+          :UPDATE Account
+          balance = balance + total;
+          
+          :INSERT Transaction
+          (type = 'SAVINGS_WITHDRAWAL');
+          note right
+          Ghi rõ: Đáo hạn sổ tiết kiệm
+          Số sổ: XXX
+          end note
+          
+          :INSERT SavingsTransaction
+          (type = 'MATURITY_WITHDRAWAL');
+          
+          :UPDATE SavingsDeposit
+          status = 'CLOSED';
+          
+          :COMMIT;
+          
+          |Khách hàng|
+          :Nhận tiền về tài khoản;
+          :Nhận biên lai đóng sổ;
+          stop
+        }
+        
+      elseif (Tái tục chỉ GỐC) then
+        partition "Tái tục Gốc - Nhận Lãi" {
+          :Chọn "Tái tục gốc, nhận lãi";
+          :Chọn kỳ hạn mới;
+          
+          |Hệ thống|
+          :Load lãi suất hiện tại;
+          :Tính lãi dự kiến kỳ mới;
+          :Hiển thị preview;
+          
+          |Khách hàng|
+          :Xác nhận tái tục;
+          
+          |Hệ thống|
+          :BEGIN TRANSACTION;
+          
+          :Chuyển lãi về TK chính;
+          :UPDATE Account
+          balance = balance + interest;
+          
+          :INSERT Transaction
+          (type = 'INTEREST_PAYMENT');
+          
+          :Tạo SavingsDeposit mới;
+          note right
+          - principal_amount = gốc cũ
+          - interest_rate = lãi suất mới
+          - term_months = kỳ hạn mới
+          - auto_renew = tùy chọn
+          end note
+          
+          :INSERT SavingsTransaction
+          (type = 'RENEWAL');
+          
+          :UPDATE SavingsDeposit cũ
+          status = 'CLOSED';
+          
+          :COMMIT;
+          
+          |Khách hàng|
+          :Nhận lãi về tài khoản;
+          :Nhận số sổ tiết kiệm mới;
+          stop
+        }
+        
+      else (Tái tục GỐC + LÃI)
+        partition "Tái tục Gốc + Lãi" {
+          :Chọn "Tái tục gốc + lãi";
+          :Chọn kỳ hạn mới;
+          
+          |Hệ thống|
+          :Tính tổng gốc + lãi;
+          :Tính lãi kép dự kiến;
+          note right
+          Lãi kép mạnh hơn lãi đơn!
+          New Principal = Old Principal + Interest
+          end note
+          
+          :Hiển thị so sánh lợi ích;
+          
+          |Khách hàng|
+          :Xác nhận tái tục;
+          
+          |Hệ thống|
+          :BEGIN TRANSACTION;
+          
+          :Tạo SavingsDeposit mới;
+          note right
+          - principal_amount = gốc + lãi cũ
+          - interest_rate = lãi suất mới
+          - term_months = kỳ hạn mới
+          - auto_renew = tùy chọn
+          end note
+          
+          :INSERT SavingsTransaction
+          (type = 'RENEWAL');
+          
+          :UPDATE SavingsDeposit cũ
+          status = 'CLOSED';
+          
+          :COMMIT;
+          
+          |Khách hàng|
+          :Nhận số sổ tiết kiệm mới
+          với số tiền gốc lớn hơn;
+          stop
+        }
+      endif
+    endif
+  endif
+endif
+
+@enduml
+

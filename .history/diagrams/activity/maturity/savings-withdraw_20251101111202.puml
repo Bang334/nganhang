@@ -1,0 +1,30 @@
+@startuml Rút Tiền Đáo Hạn Tiết Kiệm
+title Activity Diagram - Rút Tiền Khi Đáo Hạn Sổ Tiết Kiệm
+
+|Hệ thống|
+start
+:Sổ tiết kiệm đã đáo hạn;
+
+|Khách hàng|
+:Chọn "Rút về tài khoản";
+
+|Hệ thống|
+:Tính tổng tiền (gốc + lãi);
+:Hiển thị preview;
+
+|Khách hàng|
+:Xác nhận rút tiền;
+
+|Hệ thống|
+:Cộng tiền vào tài khoản;
+:Ghi nhận giao dịch rút tiền;
+:Đóng sổ tiết kiệm;
+
+|Khách hàng|
+:Nhận tiền về tài khoản;
+:Nhận biên lai đóng sổ;
+
+stop
+
+@enduml
+

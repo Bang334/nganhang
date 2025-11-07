@@ -1,0 +1,51 @@
+@startuml Mở Sổ Tiết Kiệm
+autonumber
+title Luồng Mở Sổ Tiết Kiệm
+
+actor "Khách hàng" as Customer
+participant "Web/App" as App
+participant "System" as System
+database "Database" as DB
+
+Customer -> App: Chọn "Gửi tiết kiệm"
+App -> System: Load lãi suất tiết kiệm
+
+System -> DB: SELECT * FROM SavingsInterestRates\nWHERE status = 'ACTIVE'
+DB --> System: Danh sách lãi suất
+
+System --> App: Hiển thị các kỳ hạn\nvà lãi suất
+
+Customer -> App: Nhập số tiền, kỳ hạn\nphương thức nhận lãi
+App -> System: Tính lãi dự kiến
+System --> App: Số tiền lãi dự kiến
+
+Customer -> App: Xác nhận mở sổ
+App -> System: Create SavingsDeposit
+
+System -> DB: BEGIN TRANSACTION
+
+System -> DB: SELECT balance FROM Accounts\nWHERE account_id = customer_account
+DB --> System: Current balance
+
+alt Số dư đủ (min 1M)
+    System -> DB: UPDATE Accounts\nSET balance = balance - principal_amount
+    DB --> System: OK
+    
+    System -> DB: INSERT SavingsDeposits\n(principal, rate, term, maturity_date)
+    DB --> System: deposit_id
+    
+    System -> DB: INSERT SavingsTransactions\n(type = 'INITIAL_DEPOSIT')
+    DB --> System: OK
+    
+    System -> DB: COMMIT
+    
+    System --> App: Mở sổ thành công\n(Số sổ tiết kiệm)
+    App --> Customer: Hiển thị thông tin sổ\nvà lãi dự kiến
+else Số dư không đủ
+    System -> DB: ROLLBACK
+    System --> App: Lỗi: Số dư không đủ
+    App --> Customer: Thông báo lỗi
+end
+
+@enduml
+

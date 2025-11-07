@@ -1,0 +1,85 @@
+@startuml Communication Diagram - Chuyển khoản
+
+title Sơ đồ Giao tiếp (Communication Diagram): Chuyển khoản nội bộ
+
+!define ACTOR_COLOR #FFE6E6
+!define UI_COLOR #E3F2FD
+!define SERVICE_COLOR #FFF3E0
+!define DB_COLOR #E8F5E9
+
+actor Customer ACTOR_COLOR
+participant "UI\n(Frontend)" as UI UI_COLOR
+participant "TransferController" as Controller SERVICE_COLOR
+participant "TransferService" as Service SERVICE_COLOR
+participant "AccountService" as AccService SERVICE_COLOR
+participant "Database" as DB DB_COLOR
+participant "NotificationService" as Notif SERVICE_COLOR
+
+' Connections
+Customer -[hidden]- UI
+UI -[hidden]- Controller
+Controller -[hidden]- Service
+Service -[hidden]- AccService
+AccService -[hidden]- DB
+Service -[hidden]- Notif
+
+' Messages with sequence numbers
+Customer -> UI : 1: Nhập thông tin chuyển khoản\n(TK nguồn, TK đích, số tiền)
+UI -> Controller : 2: initiateTransfer(fromAccount,\n   toAccount, amount)
+Controller -> AccService : 3: validateAccount(fromAccount)
+AccService -> DB : 3.1: SELECT account\n     WHERE id = fromAccount
+DB --> AccService : 3.2: Account data
+AccService --> Controller : 4: Account valid
+
+Controller -> AccService : 5: validateAccount(toAccount)
+AccService -> DB : 5.1: SELECT account\n     WHERE id = toAccount
+DB --> AccService : 5.2: Account data
+AccService --> Controller : 6: Account valid
+
+Controller -> Controller : 7: calculateFee(amount, fromAccount, toAccount)
+
+Controller -> UI : 8: Display confirmation\n   (amount + fee)
+UI -> Customer : 9: Hiển thị xác nhận\n(Số tiền, Phí, Tổng)
+
+Customer -> UI : 10: Nhập mã OTP
+UI -> Controller : 11: verifyOTP(otp)
+Controller -> Controller : 12: Validate OTP
+
+Controller -> Service : 13: executeTransfer(fromAccount,\n    toAccount, amount, fee)
+Service -> DB : 14: BEGIN TRANSACTION
+Service -> DB : 15: SELECT balance FROM account\n    WHERE id = fromAccount\n    FOR UPDATE
+DB --> Service : 16: balance
+
+Service -> Service : 17: Check balance >= (amount + fee)
+
+Service -> DB : 18: UPDATE account\n    SET balance = balance - (amount + fee)\n    WHERE id = fromAccount
+Service -> DB : 19: UPDATE account\n    SET balance = balance + amount\n    WHERE id = toAccount
+Service -> DB : 20: INSERT INTO transaction\n    (from_account, type='DEBIT',\n     amount=-(amount+fee))
+Service -> DB : 21: INSERT INTO transaction\n    (to_account, type='CREDIT',\n     amount=amount)
+Service -> DB : 22: COMMIT
+DB --> Service : 23: Transaction committed
+
+Service -> Notif : 24: sendNotification(fromAccount,\n    toAccount, amount)
+Notif --> Service : 25: Notifications sent
+
+Service --> Controller : 26: Transfer completed
+Controller --> UI : 27: Success response
+UI --> Customer : 28: "Chuyển khoản thành công!"
+
+note right of Service
+  **Đảm bảo ACID:**
+  - Atomicity: Cả 2 TK cùng update
+  - Consistency: Tổng tiền không đổi
+  - Isolation: FOR UPDATE lock
+  - Durability: COMMIT vào DB
+end note
+
+note left of Customer
+  **Bảo mật:**
+  - Xác thực OTP
+  - Session timeout
+  - Rate limiting
+end note
+
+@enduml
+

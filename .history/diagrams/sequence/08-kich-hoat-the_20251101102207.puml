@@ -1,0 +1,42 @@
+@startuml Kích hoạt Thẻ
+autonumber
+title Luồng Kích hoạt Thẻ Ngân hàng
+
+actor "Khách hàng" as Customer
+participant "Giao dịch viên" as Teller
+participant "System" as System
+database "Database" as DB
+
+Customer -> Teller: Yêu cầu kích hoạt thẻ\n(Thẻ + CMND)
+Teller -> System: Nhập số tài khoản
+
+System -> DB: SELECT * FROM Cards\nWHERE account_id = ?
+DB --> System: Card info
+
+alt Thẻ tồn tại
+    System --> Teller: Hiển thị thông tin thẻ\n(Card number masked, expiry)
+    
+    Teller -> Customer: Yêu cầu mã kích hoạt\n(từ phong bì)
+    Customer -> Teller: Cung cấp mã kích hoạt
+    Teller -> System: Nhập mã kích hoạt
+    
+    System -> System: Validate mã kích hoạt
+    
+    alt Mã hợp lệ
+        System -> DB: UPDATE Cards\nSET status = 'ACTIVE',\nactivated_at = NOW()
+        DB --> System: OK
+        
+        System --> Teller: Kích hoạt thành công\n(Biên nhận)
+        Teller --> Customer: Giao thẻ đã kích hoạt\nvà biên nhận
+    else Mã không hợp lệ
+        System --> Teller: Lỗi: Mã kích hoạt sai
+        Teller --> Customer: Yêu cầu kiểm tra lại mã
+    end
+    
+else Thẻ không tồn tại
+    System --> Teller: Lỗi: Không tìm thấy thẻ
+    Teller --> Customer: Thông báo lỗi
+end
+
+@enduml
+

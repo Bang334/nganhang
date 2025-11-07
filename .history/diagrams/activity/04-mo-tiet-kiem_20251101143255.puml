@@ -1,0 +1,43 @@
+@startuml Mở Sổ Tiết Kiệm
+title Activity Diagram - Mở Sổ Tiết Kiệm
+
+||Khách hàng|
+start
+:Đăng nhập;
+:Chọn "Gửi tiết kiệm";
+:Nhập thông tin sổ tiết kiệm;
+note right
+- Số tiền gửi
+- Kỳ hạn (1, 3, 6, 12, 24 tháng)
+- Phương thức nhận lãi
+- Tự động tái tục (có/không)
+end note
+
+:Xác nhận mở sổ;
+
+||Hệ thống|
+if (Số tiền >= 1M?) then (không)
+  |Khách hàng|
+  :Lỗi: Tối thiểu 1M VND;
+  stop
+else (có)
+  |Hệ thống|
+  if (Số dư tài khoản đủ?) then (không)
+    |Khách hàng|
+    :Lỗi: Số dư không đủ;
+    stop
+  else (có)
+    |Hệ thống|
+    :Trừ tiền từ tài khoản thanh toán;
+    :Tạo sổ tiết kiệm mới;
+    :Ghi nhận giao dịch mở sổ;
+    :Cập nhật số dư tài khoản;
+    
+    |Khách hàng|
+    :Nhận số sổ tiết kiệm;
+    :Xem ngày đáo hạn và lãi dự kiến;
+    stop
+  endif
+endif
+
+@enduml

@@ -1,0 +1,33 @@
+@startuml Mở Tài khoản
+|Khách hàng|
+start
+:Yêu cầu mở tài khoản;
+:Cung cấp CMND, 
+thông tin cá nhân;
+
+|Giao dịch viên|
+:Nhập thông tin KH;
+note right
+- Họ tên
+- Email, SĐT
+- CMND
+- Thu nhập
+end note
+
+:Kiểm tra thông tin;
+
+if (Thông tin hợp lệ
+và Số tiền >= 100K?) then (không)
+  :Thông báo lỗi;
+  stop
+else (có)
+  :Tạo tài khoản khách hàng;
+  :Nạp tiền ban đầu vào tài khoản;
+  
+  |Khách hàng|
+  :Nhận số tài khoản;
+  stop
+endif
+
+@enduml
+

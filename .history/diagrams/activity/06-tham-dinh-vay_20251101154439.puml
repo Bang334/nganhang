@@ -1,0 +1,163 @@
+@startuml Thẩm định và Phê duyệt Vay
+title Activity Diagram - Thẩm định Khoản Vay
+
+|Nhân viên Tín dụng|
+start
+:Đăng nhập;
+:Chọn hồ sơ chờ duyệt;
+
+|Hệ thống|
+:Hiển thị thông tin hồ sơ đầy đủ;
+note right
+- Thông tin khách hàng
+- Thông tin khoản vay
+- Tài sản thế chấp (nếu có)
+end note
+
+|Nhân viên Tín dụng|
+:Xem xét hồ sơ;
+:Bắt đầu thẩm định;
+
+partition "Bước 1: Đánh giá tín dụng" {
+  :Nhập thông tin đánh giá;
+  note right
+  - Thu nhập hàng tháng
+  - Tỷ lệ nợ/thu nhập
+  - Lịch sử tín dụng
+  end note
+  
+  |Hệ thống|
+  :Tính điểm tín dụng (Credit Score);
+  :Xếp hạng khách hàng (AAA → D);
+  :Tính lãi suất theo hạng;
+}
+
+if (Có tài sản thế chấp?) then (không)
+  partition "Kiểm tra điều kiện vay không thế chấp" {
+    |Hệ thống|
+    :Kiểm tra điều kiện;
+    note right
+    ✅ Credit Score >= 700 (AA+)
+    ✅ Thu nhập >= 15 triệu/tháng
+    ✅ Tỷ lệ nợ <= 40%
+    ✅ Lịch sử tín dụng: GOOD
+    ✅ Số tiền vay <= 200 triệu
+    ✅ Số tiền <= 10 lần thu nhập
+    end note
+    
+    if (Đủ điều kiện?) then (không)
+      |Hệ thống|
+      :TỰ ĐỘNG TỪ CHỐI;
+      :Cập nhật trạng thái (Từ chối);
+      
+      |Nhân viên Tín dụng|
+      :Nhận thông báo từ chối tự động;
+      note right
+      Không đủ điều kiện
+      vay không thế chấp
+      end note
+      
+      |Hệ thống|
+      :Gửi thông báo khách hàng;
+      stop
+    else (có)
+      |Hệ thống|
+      :Đủ điều kiện vay không thế chấp;
+      note right
+      Lãi suất cao hơn vay có thế chấp
+      → Tiếp tục quyết định
+      end note
+    endif
+  }
+  
+elseif (Có tài sản thế chấp?) then (có)
+  partition "Bước 2: Thẩm định tài sản" {
+    |Nhân viên Tín dụng|
+    :Kiểm tra giấy tờ;
+    :Thẩm định giá trị thực tế;
+    :Nhập giá trị thẩm định;
+    
+    |Hệ thống|
+    :Tính LTV ratio;
+    :So sánh với Max LTV;
+    
+    if (LTV hợp lệ?) then (không)
+      |Hệ thống|
+      :TỰ ĐỘNG TỪ CHỐI khoản vay;
+      :Cập nhật trạng thái (Từ chối);
+      :Giải phóng tài sản thế chấp;
+      
+      |Nhân viên Tín dụng|
+      :Nhận thông báo từ chối tự động;
+      note right
+      LTV vượt quá giới hạn
+      → Không đủ điều kiện
+      end note
+      
+      |Hệ thống|
+      :Gửi thông báo khách hàng;
+      stop
+    else (có)
+      |Hệ thống|
+      :Cập nhật thông tin tài sản thế chấp;
+      note right
+      LTV hợp lệ
+      → Tiếp tục thẩm định
+      end note
+    endif
+  }
+endif
+
+partition "Bước 3: Quyết định cuối cùng" {
+  |Nhân viên Tín dụng|
+  if (Quyết định?) then (Phê duyệt)
+    :Nhập thông tin phê duyệt;
+    note right
+    - Số tiền duyệt
+    - Lãi suất
+    - Thời hạn
+    end note
+    
+    |Hệ thống|
+    :Cập nhật thông tin khoản vay;
+    :Tạo lịch trả nợ hàng tháng;
+    
+    partition "Cập nhật điểm tín dụng (Khi phê duyệt)" {
+      note right
+      Khoản vay mới được phê duyệt
+      → Có thể tăng điểm nhẹ nếu:
+      - Là khoản vay đầu tiên (+5 điểm)
+      - Hoặc giữ nguyên điểm
+      → Điểm sẽ thay đổi chủ yếu
+      dựa trên lịch sử trả nợ
+      end note
+      :Kiểm tra lịch sử khoản vay;
+      if (Khoản vay đầu tiên?) then (có)
+        :Tăng điểm tín dụng (+5 điểm);
+        :Lưu vào CreditScoreHistory;
+        note right
+        Event Type: LOAN_APPROVED
+        Reason: "Khoản vay đầu tiên được phê duyệt"
+        end note
+      endif
+    }
+    
+    :Gửi thông báo phê duyệt;
+    
+  else (Từ chối)
+    :Nhập lý do từ chối;
+    
+    |Hệ thống|
+    :Cập nhật trạng thái khoản vay (Từ chối);
+    
+    if (Có thế chấp?) then (có)
+      :Giải phóng tài sản thế chấp;
+    endif
+    
+    :Gửi thông báo từ chối;
+  endif
+}
+
+stop
+
+@enduml

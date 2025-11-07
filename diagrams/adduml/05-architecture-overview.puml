@@ -1,0 +1,93 @@
+@startuml Architecture Overview
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title Hệ thống Quản lý Ngân hàng - Architecture Overview (3-Tier)
+
+package "Tier 1: Presentation Layer" {
+    component [Customer\nDashboard] as CustomerUI
+    component [Teller\nDashboard] as TellerUI
+    component [Loan Officer\nDashboard] as LoanOfficerUI
+    component [Admin\nDashboard] as AdminUI
+}
+
+package "Tier 2: Business Logic Layer" {
+    component [API Gateway] as APIGateway
+    component [Authentication\n& Authorization] as AuthService
+    component [Account\nService] as AccountService
+    component [Transaction\nService] as TransactionService
+    component [Savings\nService] as SavingsService
+    component [Loan\nService] as LoanService
+    component [Credit\nEvaluation] as CreditService
+    component [Notification\nService] as NotificationService
+    component [Reporting\nService] as ReportingService
+}
+
+package "Tier 3: Data Layer" {
+    component [Data Access\nLayer] as DAL
+    database "MySQL\nDatabase" as MySQLDB
+    component [Redis\nCache] as Redis
+    component [File\nStorage] as FileStorage
+}
+
+' Presentation to Business Logic
+CustomerUI --> APIGateway
+TellerUI --> APIGateway
+LoanOfficerUI --> APIGateway
+AdminUI --> APIGateway
+
+' API Gateway to Services
+APIGateway --> AuthService
+APIGateway --> AccountService
+APIGateway --> TransactionService
+APIGateway --> SavingsService
+APIGateway --> LoanService
+APIGateway --> CreditService
+APIGateway --> ReportingService
+
+' Services to Data Layer
+AccountService --> DAL
+TransactionService --> DAL
+SavingsService --> DAL
+LoanService --> DAL
+CreditService --> DAL
+ReportingService --> DAL
+
+AuthService --> Redis
+AccountService --> Redis
+TransactionService --> Redis
+
+DAL --> MySQLDB
+DAL --> FileStorage
+
+' Cross-cutting
+NotificationService --> MySQLDB
+NotificationService --> Redis
+
+note right of APIGateway
+  **API Gateway:**
+  - Request Routing
+  - Rate Limiting
+  - Authentication
+  - Request/Response
+    Transformation
+end note
+
+note right of DAL
+  **Data Access Layer:**
+  - Repository Pattern
+  - ORM (JPA/Sequelize)
+  - Connection Pooling
+  - Transaction Management
+end note
+
+note bottom of MySQLDB
+  **Database:**
+  - ACID Compliance
+  - Master-Slave Replication
+  - Automated Backups
+  - Triggers & Procedures
+end note
+
+@enduml
+

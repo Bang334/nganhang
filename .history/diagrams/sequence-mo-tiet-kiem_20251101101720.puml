@@ -1,0 +1,93 @@
+@startuml Mở sổ tiết kiệm
+
+title Nghiệp vụ: Mở sổ tiết kiệm
+
+actor Customer
+participant UI
+participant SavingsController
+participant SavingsService
+participant AccountService
+participant InterestRateService
+participant DB
+participant EmailService
+
+== Chọn gói tiết kiệm ==
+Customer -> UI: Chọn "Gửi tiết kiệm"
+UI -> SavingsController: getAvailableTerms()
+SavingsController -> InterestRateService: getAllRates()
+InterestRateService -> DB: SELECT * FROM\nsavings_interest_rate\nWHERE is_active = TRUE
+DB --> InterestRateService: Rate list
+InterestRateService --> SavingsController: Rates
+SavingsController --> UI: Display rates
+UI --> Customer: Hiển thị:\n- 1 tháng: 3.5%\n- 3 tháng: 4.5%\n- 6 tháng: 5.5%\n- 12 tháng: 6.5%\n- 24 tháng: 7.0%
+
+== Nhập thông tin ==
+Customer -> UI: Chọn kỳ hạn 12 tháng\nNhập số tiền: 50,000,000
+UI -> SavingsController: validateAmount(amount)
+
+alt Amount >= 1,000,000
+  SavingsController --> UI: Valid
+  
+  UI -> SavingsController: calculateInterest(\n  principal=50M,\n  rate=6.5%, term=12)
+  SavingsController -> SavingsService: calculate(50M, 6.5%, 12)
+  SavingsService -> SavingsService: interest = 50M * 6.5% * 12/12\n        = 3,250,000
+  SavingsService -> SavingsService: maturity_date = today + 12 months
+  SavingsService --> SavingsController: Result
+  SavingsController --> UI: Display calculation
+  UI --> Customer: Hiển thị:\n- Gốc: 50,000,000\n- Lãi: 3,250,000\n- Tổng nhận: 53,250,000\n- Đáo hạn: 01/11/2026
+  
+else Amount < 1,000,000
+  SavingsController --> UI: Error
+  UI --> Customer: "Số tiền tối thiểu\nlà 1,000,000 VNĐ"
+  UI -> Customer: Quay lại nhập lại
+end
+
+== Kiểm tra số dư ==
+Customer -> UI: Xác nhận mở sổ
+UI -> SavingsController: createSavings(accountId,\n  amount, term, autoRenewOption)
+SavingsController -> AccountService: checkBalance(accountId, amount)
+AccountService -> DB: SELECT balance FROM account\nWHERE account_id = ? FOR UPDATE
+DB --> AccountService: balance = 80,000,000
+
+alt Balance >= Amount
+  AccountService --> SavingsController: OK
+  
+  == Tạo sổ tiết kiệm ==
+  SavingsController -> SavingsService: create(data)
+  SavingsService -> DB: BEGIN TRANSACTION
+  
+  SavingsService -> DB: UPDATE account\nSET balance = balance - 50,000,000
+  
+  SavingsService -> DB: INSERT INTO savings_deposit\n(account_id, principal_amount,\n interest_rate, term_months,\n maturity_date, status='ACTIVE')
+  DB --> SavingsService: deposit_id
+  
+  SavingsService -> DB: INSERT INTO transaction\n(type='SAVINGS_OPEN',\n amount=-50M, status='SUCCESS')
+  
+  SavingsService -> DB: COMMIT
+  DB --> SavingsService: Success
+  
+  SavingsService --> SavingsController: Deposit created
+  SavingsController --> UI: Success
+  UI --> Customer: "Mở sổ tiết kiệm\nthành công!"
+  
+  == Gửi xác nhận ==
+  SavingsController -> EmailService: sendConfirmation(\n  email, depositDetails)
+  EmailService --> SavingsController: Email sent
+  
+else Balance < Amount
+  AccountService --> SavingsController: Insufficient balance
+  SavingsController --> UI: Error
+  UI --> Customer: "Số dư không đủ"
+end
+
+note right of DB
+  Giao dịch đảm bảo:
+  1. Trừ tiền từ TK thanh toán
+  2. Tạo sổ tiết kiệm
+  3. Ghi nhận transaction
+  
+  Nếu 1 bước lỗi → ROLLBACK tất cả
+end note
+
+@enduml
+

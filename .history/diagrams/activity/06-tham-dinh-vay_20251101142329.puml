@@ -1,0 +1,136 @@
+@startuml Thẩm định và Phê duyệt Vay
+title Activity Diagram - Thẩm định Khoản Vay
+
+|Nhân viên Tín dụng|
+start
+:Đăng nhập;
+:Xem danh sách hồ sơ chờ duyệt;
+:Chọn hồ sơ để thẩm định;
+
+|Hệ thống|
+:Load thông tin đầy đủ;
+note right
+- Thông tin khách hàng
+- Thông tin khoản vay
+- Tài sản thế chấp (nếu có)
+- Lịch sử tín dụng
+end note
+
+|Nhân viên Tín dụng|
+partition "Bước 1: Đánh giá tín dụng" {
+  :Nhập thu nhập hàng tháng;
+  :Nhập tỷ lệ nợ/thu nhập;
+  
+  |Hệ thống|
+  :Tính Credit Score;
+  note right
+  Score = f(income, debt_ratio, history)
+  Range: 400-800
+  
+  Factors:
+  - Income level (30%)
+  - Debt-to-Income ratio (25%)
+  - Payment history (20%)
+  - Credit utilization (15%)
+  - Credit age (10%)
+  end note
+  
+  :Xếp hạng (Grade);
+  note right
+  AAA: 750-800
+  AA:  700-749
+  A:   650-699
+  BBB: 600-649
+  BB:  550-599
+  B:   500-549
+  CCC: 450-499
+  CC:  400-449
+  C:   350-399
+  D:   < 350
+  end note
+  
+  :Cập nhật điểm tín dụng khách hàng;
+  :Tính lãi suất theo grade;
+}
+
+if (Có tài sản thế chấp?) then (có)
+  partition "Bước 2: Thẩm định tài sản" {
+    |Nhân viên Tín dụng|
+    :Kiểm tra giấy tờ;
+    :Thẩm định giá trị thực tế;
+    :Nhập giá trị thẩm định;
+    
+    |Hệ thống|
+    :Tính LTV ratio;
+    :So sánh với Max LTV;
+    
+    if (LTV hợp lệ?) then (không)
+      |Nhân viên Tín dụng|
+      :Từ chối do LTV quá cao;
+      :Nhập lý do từ chối;
+      
+      |Hệ thống|
+      :UPDATE Loan (REJECTED);
+      :UPDATE Collateral (AVAILABLE);
+      :Gửi thông báo KH;
+      stop
+    else (có)
+      |Hệ thống|
+      :UPDATE Collateral;
+      note right
+      - appraised_value
+      - appraised_by
+      - status = AVAILABLE
+      end note
+    endif
+  }
+endif
+
+partition "Bước 3: Quyết định cuối cùng" {
+  |Nhân viên Tín dụng|
+  if (Quyết định?) then (Phê duyệt)
+    :Nhập số tiền duyệt;
+    :Nhập lãi suất;
+    :Nhập thời hạn;
+    
+    |Hệ thống|
+    :Tính monthly payment;
+    
+    |Nhân viên Tín dụng|
+    :Xác nhận phê duyệt;
+    
+    |Hệ thống|
+    :UPDATE Loan;
+    note right
+    - status = APPROVED
+    - approved_amount
+    - approved_by
+    - approved_date
+    end note
+    
+    :Generate LoanPaymentSchedule;
+    note right
+    Tạo lịch trả nợ hàng tháng
+    từ ngày giải ngân đến đáo hạn
+    end note
+    
+    :Gửi thông báo phê duyệt;
+    
+  else (Từ chối)
+    :Nhập lý do từ chối;
+    
+    |Hệ thống|
+    :UPDATE Loan (REJECTED);
+    
+    if (Có thế chấp?) then (có)
+      :UPDATE Collateral (AVAILABLE);
+    endif
+    
+    :Gửi thông báo từ chối;
+  endif
+}
+
+stop
+
+@enduml
+

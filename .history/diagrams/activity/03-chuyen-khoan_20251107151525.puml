@@ -1,0 +1,84 @@
+@startuml Chuyển Khoản
+title Activity Diagram - Chuyển Khoản
+
+|Khách hàng|
+start
+:Đăng nhập hệ thống;
+:Chọn "Chuyển khoản";
+:Chọn tài khoản nguồn;
+:Nhập thông tin chuyển khoản;
+note right
+- Ngân hàng nhận
+- Số tài khoản người nhận
+- Số tiền
+- Nội dung chuyển khoản
+end note
+
+:Xác nhận chuyển khoản;
+
+|Hệ thống|
+:Kiểm tra và khóa tài khoản nguồn;
+
+if (Số dư đủ?) then (không)
+  :Hủy giao dịch;
+  |Khách hàng|
+  :Lỗi: Số dư không đủ;
+  stop
+else (có)
+  |Hệ thống|
+  
+  if (Chuyển khoản nội bộ?) then (có)
+    :Kiểm tra tài khoản đích có tồn tại?;
+    
+    if (Tài khoản đích tồn tại?) then (không)
+      :Hủy giao dịch;
+      |Khách hàng|
+      :Lỗi: Số tài khoản không tồn tại;
+      stop
+    else (có)
+      |Hệ thống|
+      :Trừ tiền từ tài khoản nguồn;
+      :Cộng tiền vào tài khoản đích;
+      :Ghi nhận giao dịch (phí = 0);
+      :Cập nhật số dư cả hai tài khoản;
+      :Lưu from_bank_name = 'ABC';
+      :Lưu to_bank_name = 'ABC';
+      
+      |Khách hàng|
+      :Hiển thị biên lai;
+      :Nhận thông báo thành công;
+      stop
+    endif
+  else (liên ngân hàng)
+    |Hệ thống|
+    :Tính phí giao dịch (5,000 VND);
+    :Kiểm tra số dư đủ (số tiền + phí)?;
+    
+    if (Số dư đủ?) then (không)
+      :Hủy giao dịch;
+      |Khách hàng|
+      :Lỗi: Số dư không đủ (bao gồm phí);
+      stop
+    else (có)
+      |Hệ thống|
+      :Trừ tiền từ tài khoản nguồn\n(số tiền + phí);
+      :Gửi yêu cầu chuyển khoản đến ngân hàng đích;
+      :Ghi nhận giao dịch (có phí);
+      :Cập nhật số dư tài khoản nguồn;
+      :Lưu from_bank_name = 'ABC';
+      :Lưu to_bank_name = [Tên ngân hàng đích];
+      
+      |Khách hàng|
+      :Hiển thị biên lai;
+      :Nhận thông báo thành công;
+      note right
+      Giao dịch liên ngân hàng
+      có thể mất 1-2 ngày
+      để hoàn tất
+      end note
+      stop
+    endif
+  endif
+endif
+
+@enduml

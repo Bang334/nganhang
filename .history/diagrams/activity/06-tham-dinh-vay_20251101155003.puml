@@ -1,0 +1,133 @@
+@startuml Thẩm định và Phê duyệt Vay
+title Activity Diagram - Thẩm định Khoản Vay
+
+|Nhân viên Tín dụng|
+start
+:Đăng nhập;
+:Chọn hồ sơ chờ duyệt;
+
+|Hệ thống|
+:Hiển thị thông tin hồ sơ;
+:Hiển thị thông tin khách hàng;
+:Hiển thị thông tin khoản vay;
+:Hiển thị tài sản thế chấp (nếu có);
+
+|Nhân viên Tín dụng|
+:Xem xét hồ sơ;
+
+partition "Bước 1: Tính điểm tín dụng" {
+  |Nhân viên Tín dụng|
+  :Nhập thu nhập hàng tháng;
+  :Nhập thông tin nợ hiện tại;
+  
+  |Hệ thống|
+  :Tính điểm tín dụng;
+  :Xếp hạng (AAA → D);
+  :Tính lãi suất theo hạng;
+  :Hiển thị kết quả;
+}
+
+partition "Bước 2: Kiểm tra loại vay" {
+  |Hệ thống|
+  
+  if (Có tài sản thế chấp?) then (có)
+    partition "Vay có thế chấp" {
+      |Nhân viên Tín dụng|
+      :Kiểm tra giấy tờ tài sản;
+      :Thẩm định giá trị;
+      :Nhập giá trị thẩm định;
+      
+      |Hệ thống|
+      :Tính LTV = (Số tiền vay / Giá trị tài sản) × 100;
+      
+      if (LTV <= 70%?) then (không)
+        :TỰ ĐỘNG TỪ CHỐI;
+        :Giải phóng tài sản;
+        :Gửi thông báo từ chối;
+        stop
+      else (có)
+        :LTV hợp lệ → Tiếp tục;
+      endif
+    }
+    
+  else (không)
+    partition "Vay không thế chấp" {
+      |Hệ thống|
+      :Kiểm tra Credit Score >= 700?;
+      
+      if (Không đủ?) then (không)
+        :TỰ ĐỘNG TỪ CHỐI;
+        :Gửi thông báo từ chối;
+        stop
+      endif
+      
+      :Kiểm tra Thu nhập >= 15 triệu/tháng?;
+      
+      if (Không đủ?) then (không)
+        :TỰ ĐỘNG TỪ CHỐI;
+        :Gửi thông báo từ chối;
+        stop
+      endif
+      
+      :Kiểm tra Tỷ lệ nợ <= 40%?;
+      
+      if (Không đủ?) then (không)
+        :TỰ ĐỘNG TỪ CHỐI;
+        :Gửi thông báo từ chối;
+        stop
+      endif
+      
+      :Kiểm tra Số tiền <= 200 triệu?;
+      
+      if (Không đủ?) then (không)
+        :TỰ ĐỘNG TỪ CHỐI;
+        :Gửi thông báo từ chối;
+        stop
+      endif
+      
+      :Đủ điều kiện → Tiếp tục;
+    }
+  endif
+}
+
+partition "Bước 3: Quyết định" {
+  |Nhân viên Tín dụng|
+  
+  if (Quyết định?) then (Phê duyệt)
+    :Nhập số tiền duyệt;
+    :Nhập lãi suất;
+    :Nhập thời hạn;
+    
+    |Hệ thống|
+    :Cập nhật thông tin khoản vay;
+    :Tạo lịch trả nợ;
+    
+    partition "Cập nhật điểm tín dụng" {
+      |Hệ thống|
+      if (Khoản vay đầu tiên?) then (có)
+        :Tăng điểm +5;
+        :Lưu vào CreditScoreHistory;
+      else (không)
+        :Giữ nguyên điểm;
+      endif
+    }
+    
+    :Gửi thông báo phê duyệt;
+    
+  else (Từ chối)
+    :Nhập lý do từ chối;
+    
+    |Hệ thống|
+    :Cập nhật trạng thái (Từ chối);
+    
+    if (Có thế chấp?) then (có)
+      :Giải phóng tài sản;
+    endif
+    
+    :Gửi thông báo từ chối;
+  endif
+}
+
+stop
+
+@enduml

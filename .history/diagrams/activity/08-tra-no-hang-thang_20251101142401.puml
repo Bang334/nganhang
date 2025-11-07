@@ -1,0 +1,173 @@
+@startuml Trả Nợ Hàng Tháng
+title Activity Diagram - Trả Nợ Khoản Vay
+
+|Khách hàng|
+start
+:Đăng nhập;
+:Xem danh sách khoản vay;
+:Chọn khoản vay cần trả;
+
+|Hệ thống|
+:Load thông tin khoản vay;
+note right
+- Số dư nợ
+- Kỳ trả tiếp theo
+- Số tiền phải trả
+- Ngày đáo hạn
+end note
+
+:Hiển thị lịch trả nợ;
+note right
+Các kỳ trả nợ:
+- Đã trả (PAID)
+- Chưa trả (PENDING)
+- Quá hạn (OVERDUE)
+end note
+
+|Khách hàng|
+if (Phương thức trả?) then (Trả tự động)
+  partition "Auto-Debit (Trả tự động)" {
+    |Hệ thống|
+    :Kiểm tra ngày đáo hạn;
+    
+    if (Đến ngày trả?) then (chưa)
+      :Chờ đến ngày trả;
+      stop
+    else (rồi)
+      :Kiểm tra và khóa tài khoản;
+      
+      if (Số dư đủ?) then (không)
+        :Hủy giao dịch;
+        :Gửi thông báo số dư không đủ;
+        :Đánh dấu quá hạn;
+        stop
+      else (có)
+        :Trừ tiền từ tài khoản;
+        :Ghi nhận giao dịch trả nợ;
+        :Ghi nhận khoản thanh toán;
+        :Cập nhật lịch trả nợ (Đã trả);
+        :Cập nhật số dư nợ còn lại;
+        
+        if (Đã trả hết?) then (rồi)
+          :Cập nhật trạng thái khoản vay (Đã trả xong);
+          if (Có thế chấp?) then (có)
+            :Giải phóng tài sản thế chấp;
+          endif
+        endif
+        
+        :Gửi thông báo thành công;
+        stop
+      endif
+    endif
+  }
+  
+else (Trả thủ công)
+  partition "Manual Payment (Trả thủ công)" {
+    |Khách hàng|
+    :Chọn kỳ trả nợ;
+    
+    |Hệ thống|
+    :Hiển thị chi tiết kỳ trả;
+    note right
+    - Principal: Tiền gốc
+    - Interest: Tiền lãi
+    - Late fee: Phí trễ hạn (nếu có)
+    - Total: Tổng cộng
+    end note
+    
+    |Khách hàng|
+    if (Loại thanh toán?) then (Trả đủ)
+      :Chọn "Trả đủ kỳ này";
+      |Hệ thống|
+      :amount = total_payment;
+      
+    else (Trả một phần)
+      |Khách hàng|
+      :Nhập số tiền trả;
+      |Hệ thống|
+      if (Số tiền >= Tối thiểu?) then (không)
+        :Lỗi: Phải trả tối thiểu tiền lãi;
+        stop
+      else (có)
+        :amount = số tiền nhập;
+      endif
+      
+    else (Trả trước nhiều kỳ)
+      |Khách hàng|
+      :Chọn số kỳ muốn trả;
+      |Hệ thống|
+      :Tính tổng số tiền;
+      :amount = sum(multiple periods);
+    endif
+    
+    |Hệ thống|
+    :BEGIN TRANSACTION;
+    :Khóa Account (FOR UPDATE);
+    
+    if (Số dư TK đủ?) then (không)
+      :ROLLBACK;
+      |Khách hàng|
+      :Lỗi: Số dư không đủ;
+      stop
+    else (có)
+      |Hệ thống|
+      :Tính phân bổ thanh toán;
+      note right
+      Priority:
+      1. Late fee (phí trễ hạn)
+      2. Interest (lãi)
+      3. Principal (gốc)
+      end note
+      
+      :UPDATE Account balance (-);
+      :INSERT Transaction;
+      :INSERT LoanPayment;
+      note right
+      - principal_paid
+      - interest_paid
+      - late_fee_paid
+      - payment_method
+      end note
+      
+      :UPDATE LoanPaymentSchedule;
+      note right
+      - PAID (nếu trả đủ)
+      - PARTIAL_PAID (nếu trả một phần)
+      end note
+      
+      :UPDATE Loan outstanding_balance;
+      
+      if (Đã trả hết toàn bộ?) then (rồi)
+        :UPDATE Loan status (PAID_OFF);
+        
+        if (Có tài sản thế chấp?) then (có)
+          :UPDATE Collateral (AVAILABLE);
+          :Gửi thông báo giải phóng tài sản;
+        endif
+        
+        :Cập nhật Credit Score (+);
+        note right
+        Trả nợ đúng hạn
+        cải thiện điểm tín dụng
+        end note
+      endif
+      
+      :COMMIT;
+      
+      |Khách hàng|
+      :Hiển thị biên lai;
+      :Gửi thông báo thành công;
+      
+      if (Trả đủ kỳ này?) then (rồi)
+        :Hiển thị kỳ tiếp theo;
+      else (chưa)
+        :Hiển thị số dư còn lại của kỳ này;
+      endif
+      
+      stop
+    endif
+  }
+endif
+
+@enduml
+

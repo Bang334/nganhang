@@ -1,0 +1,71 @@
+@startuml Mở Sổ Tiết Kiệm
+title Activity Diagram - Mở Sổ Tiết Kiệm
+
+|Khách hàng|
+start
+:Đăng nhập;
+:Chọn "Gửi tiết kiệm";
+
+|Hệ thống|
+:Load lãi suất tiết kiệm;
+:Hiển thị các kỳ hạn;
+note right
+- 1 tháng: 2%/năm
+- 3 tháng: 3%/năm
+- 6 tháng: 4.5%/năm
+- 12 tháng: 6%/năm
+end note
+
+|Khách hàng|
+:Nhập số tiền gửi;
+:Chọn kỳ hạn;
+:Chọn phương thức nhận lãi;
+note right
+- Nhận lãi định kỳ
+- Nhận lãi cuối kỳ
+- Tái tục gốc + lãi
+end note
+
+|Hệ thống|
+:Tính lãi dự kiến;
+note right
+Lãi đơn: P × r × t
+Lãi kép: P × (1+r)^t - P
+end note
+
+:Hiển thị preview;
+
+|Khách hàng|
+:Xác nhận mở sổ;
+
+|Hệ thống|
+if (Số tiền >= 1M?) then (không)
+  |Khách hàng|
+  :Lỗi: Tối thiểu 1M VND;
+  stop
+else (có)
+  |Hệ thống|
+  :BEGIN TRANSACTION;
+  
+  if (Số dư TK đủ?) then (không)
+    :ROLLBACK;
+    |Khách hàng|
+    :Lỗi: Số dư không đủ;
+    stop
+  else (có)
+    |Hệ thống|
+    :UPDATE Account balance (-);
+    :INSERT SavingsDeposit;
+    :INSERT SavingsTransaction;
+    :COMMIT;
+    
+    |Khách hàng|
+    :Hiển thị số sổ tiết kiệm;
+    :Hiển thị ngày đáo hạn;
+    :Hiển thị lãi dự kiến;
+    stop
+  endif
+endif
+
+@enduml
+

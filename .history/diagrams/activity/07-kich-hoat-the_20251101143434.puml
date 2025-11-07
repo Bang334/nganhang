@@ -1,0 +1,44 @@
+@startuml Kích hoạt Thẻ
+title Activity Diagram - Kích hoạt Thẻ Ngân hàng
+
+||Khách hàng|
+start
+:Nhận thẻ từ ngân hàng;
+:Đến quầy giao dịch;
+:Cung cấp CMND + Thẻ + Mã kích hoạt;
+
+||Giao dịch viên|
+:Xác minh danh tính;
+:Nhập thông tin kích hoạt;
+note right
+- Số tài khoản
+- Mã kích hoạt
+end note
+
+||Hệ thống|
+if (Thẻ tồn tại
+và chưa kích hoạt?) then (không)
+  |Khách hàng|
+  :Thông báo lỗi;
+  stop
+else (có)
+  |Hệ thống|
+  if (Mã kích hoạt hợp lệ?) then (không)
+    |Khách hàng|
+    :Lỗi: Mã không đúng;
+    stop
+  else (có)
+    |Hệ thống|
+    :Kích hoạt thẻ;
+    :In biên nhận;
+    
+    |Giao dịch viên|
+    :Giao thẻ và biên nhận cho khách hàng;
+    
+    |Khách hàng|
+    :Nhận thẻ đã kích hoạt;
+    stop
+  endif
+endif
+
+@enduml

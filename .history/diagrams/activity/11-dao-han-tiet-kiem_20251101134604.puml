@@ -1,0 +1,188 @@
+@startuml Đáo hạn Tiết kiệm
+title Activity Diagram - Đáo hạn Sổ Tiết kiệm (Savings Maturity)
+
+|Hệ thống|
+start
+:Kiểm tra sổ tiết kiệm sắp đáo hạn
+(7 ngày trước);
+:Gửi thông báo cho khách hàng;
+:Đến ngày đáo hạn;
+:Cập nhật trạng thái sổ = 'Đã đáo hạn';
+
+|Khách hàng|
+:Nhận thông báo;
+:Đăng nhập xem chi tiết sổ;
+
+|Hệ thống|
+:Hiển thị thông tin đáo hạn;
+note right
+  - Số tiền gốc
+  - Lãi đã tích lũy
+  - Tổng tiền nhận
+  - Các tùy chọn xử lý
+end note
+
+|Khách hàng|
+if (Có tự động tái tục?) then (có)
+  partition "Tự động tái tục" {
+    |Hệ thống|
+    :Xử lý theo thiết lập trước;
+    
+    if (Loại tái tục?) then (Tái tục GỐC)
+      :Tính lãi;
+      :Chuyển lãi về tài khoản;
+      :Ghi nhận giao dịch trả lãi;
+      :Tạo sổ tiết kiệm mới (chỉ gốc);
+      :Đóng sổ cũ;
+      
+    else (Tái tục GỐC + LÃI)
+      :Tính tổng gốc + lãi;
+      :Tạo sổ tiết kiệm mới (gốc + lãi);
+      :Đóng sổ cũ;
+    endif
+    
+    |Khách hàng|
+    :Nhận thông báo tái tục;
+    :Nhận số sổ mới;
+    stop
+  }
+  
+else (không)
+  |Khách hàng|
+  :Chọn cách xử lý;
+  
+  if (Lựa chọn?) then (Rút tiền)
+    partition "Rút về tài khoản" {
+      :Chọn "Rút về tài khoản";
+      
+      |Hệ thống|
+      :Tính tổng tiền (gốc + lãi);
+      :Hiển thị preview;
+      
+      |Khách hàng|
+      :Xác nhận rút tiền;
+      
+      |Hệ thống|
+      :Cộng tiền vào tài khoản;
+      :Ghi nhận giao dịch rút tiền;
+      :Đóng sổ tiết kiệm;
+      
+      |Khách hàng|
+      :Nhận tiền về tài khoản;
+      :Nhận biên lai đóng sổ;
+      stop
+    }
+    
+  elseif (Tái tục GỐC) then
+    partition "Tái tục gốc - Nhận lãi" {
+      :Chọn "Tái tục gốc, nhận lãi";
+      :Chọn kỳ hạn mới;
+      
+      |Khách hàng|
+      if (Có nạp thêm tiền?) then (có)
+        :Nhập số tiền nạp thêm;
+        
+        |Hệ thống|
+        :Kiểm tra số dư tài khoản;
+        :Tính tổng gửi = Gốc + Nạp thêm;
+        
+      else (không)
+        :Không nạp thêm;
+        
+        |Hệ thống|
+        :Tổng gửi = Gốc;
+      endif
+      
+      |Hệ thống|
+      :Lấy lãi suất hiện tại;
+      :Tính lãi dự kiến kỳ mới;
+      :Hiển thị preview;
+      note right
+        - Số tiền từ sổ cũ
+        - Số tiền nạp thêm (nếu có)
+        - Tổng gửi
+        - Lãi dự kiến
+      end note
+      
+      |Khách hàng|
+      :Xác nhận tái tục;
+      
+      |Hệ thống|
+      if (Có nạp thêm?) then (có)
+        :Trừ tiền từ tài khoản thanh toán;
+        :Ghi nhận giao dịch nạp thêm;
+      endif
+      
+      :Chuyển lãi về tài khoản;
+      :Ghi nhận giao dịch trả lãi;
+      :Tạo sổ tiết kiệm mới;
+      note right
+        Gốc = Gốc cũ + Nạp thêm (nếu có)
+      end note
+      :Đóng sổ cũ;
+      
+      |Khách hàng|
+      :Nhận lãi về tài khoản;
+      :Nhận số sổ mới;
+      stop
+    }
+    
+  elseif (Tái tục GỐC + LÃI) then
+    partition "Tái tục gốc + lãi" {
+      :Chọn "Tái tục gốc + lãi";
+      :Chọn kỳ hạn mới;
+      
+      |Khách hàng|
+      if (Có nạp thêm tiền?) then (có)
+        :Nhập số tiền nạp thêm;
+        
+        |Hệ thống|
+        :Kiểm tra số dư tài khoản;
+        :Tính tổng gửi = (Gốc + Lãi) + Nạp thêm;
+        
+      else (không)
+        :Không nạp thêm;
+        
+        |Hệ thống|
+        :Tổng gửi = Gốc + Lãi;
+      endif
+      
+      |Hệ thống|
+      :Tính lãi kép dự kiến;
+      note right
+        Lãi kép mạnh hơn!
+        Gốc mới = (Gốc cũ + Lãi) + Nạp thêm
+      end note
+      
+      :Hiển thị so sánh lợi ích;
+      note right
+        - Số tiền từ sổ cũ (gốc + lãi)
+        - Số tiền nạp thêm (nếu có)
+        - Tổng gửi mới
+        - Lãi dự kiến kỳ mới
+      end note
+      
+      |Khách hàng|
+      :Xác nhận tái tục;
+      
+      |Hệ thống|
+      if (Có nạp thêm?) then (có)
+        :Trừ tiền từ tài khoản thanh toán;
+        :Ghi nhận giao dịch nạp thêm;
+      endif
+      
+      :Tạo sổ tiết kiệm mới;
+      note right
+        Gốc = (Gốc cũ + Lãi) + Nạp thêm
+      end note
+      :Đóng sổ cũ;
+      
+      |Khách hàng|
+      :Nhận số sổ mới với gốc lớn hơn;
+      stop
+    }
+  endif
+endif
+
+@enduml
+

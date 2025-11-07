@@ -1,0 +1,88 @@
+@startuml Kích hoạt Thẻ
+title Activity Diagram - Kích hoạt Thẻ Ngân hàng
+
+|Khách hàng|
+start
+:Nhận thẻ từ ngân hàng;
+note right
+Thẻ được gửi qua đường bưu điện
+kèm theo phong bì mã kích hoạt
+end note
+
+:Đến quầy giao dịch;
+:Yêu cầu kích hoạt thẻ;
+:Cung cấp CMND + Thẻ;
+
+|Giao dịch viên|
+:Xác minh danh tính;
+:Nhập số tài khoản;
+
+|Hệ thống|
+:Tìm thẻ theo account_id;
+
+if (Thẻ tồn tại?) then (không)
+  |Khách hàng|
+  :Lỗi: Không tìm thấy thẻ;
+  stop
+else (có)
+  |Hệ thống|
+  :Hiển thị thông tin thẻ;
+  note right
+  - Card number (masked)
+  - Card type (DEBIT/CREDIT)
+  - Expiry date
+  - Status
+  end note
+  
+  if (Thẻ đã kích hoạt?) then (rồi)
+    |Khách hàng|
+    :Thông báo thẻ đã active;
+    stop
+  endif
+  
+  |Giao dịch viên|
+  :Yêu cầu mã kích hoạt;
+  
+  |Khách hàng|
+  :Cung cấp mã từ phong bì;
+  
+  |Giao dịch viên|
+  :Nhập mã kích hoạt;
+  
+  |Hệ thống|
+  :Validate mã kích hoạt;
+  
+  if (Mã hợp lệ?) then (không)
+    |Khách hàng|
+    :Lỗi: Mã không đúng;
+    :Yêu cầu kiểm tra lại;
+    stop
+  else (có)
+    |Hệ thống|
+    :UPDATE Card;
+    note right
+    - status = ACTIVE
+    - activated_at = NOW()
+    end note
+    
+    :In biên nhận kích hoạt;
+    
+    |Giao dịch viên|
+    :Giao thẻ cho khách hàng;
+    :Giao biên nhận;
+    :Hướng dẫn sử dụng;
+    note right
+    - Cách đổi PIN
+    - Hạn mức giao dịch
+    - Cách báo mất thẻ
+    end note
+    
+    |Khách hàng|
+    :Nhận thẻ đã kích hoạt;
+    :Ký xác nhận;
+    stop
+  endif
+endif
+
+@enduml
+

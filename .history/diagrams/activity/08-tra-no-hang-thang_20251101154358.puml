@@ -1,0 +1,105 @@
+@startuml Trả Nợ Hàng Tháng
+title Activity Diagram - Trả Nợ Khoản Vay
+
+||Khách hàng|
+start
+:Đăng nhập;
+:Chọn khoản vay cần trả;
+
+if (Phương thức trả?) then (Tự động)
+  partition "Trả tự động (Auto-Debit)" {
+    |Hệ thống|
+    :Kiểm tra ngày đáo hạn;
+    
+    if (Đến ngày trả?) then (chưa)
+      :Chờ đến ngày trả;
+      stop
+      else (rồi)
+        :Kiểm tra và khóa tài khoản;
+        
+        if (Số dư đủ?) then (không)
+          :Hủy giao dịch;
+          :Gửi thông báo số dư không đủ;
+          :Đánh dấu quá hạn;
+          :Ghi nhận vào lịch sử quá hạn;
+          stop
+        else (có)
+          :Trừ tiền từ tài khoản;
+          :Ghi nhận giao dịch trả nợ;
+          :Ghi nhận khoản thanh toán;
+          :Cập nhật lịch trả nợ (Đã trả);
+          :Cập nhật số dư nợ còn lại;
+          
+          partition "Cập nhật điểm tín dụng (Tăng)" {
+            :Tăng điểm tín dụng (+5 điểm);
+            note right
+            Trả tự động đúng hạn
+            → Cải thiện điểm tín dụng
+            end note
+            :Lưu vào CreditScoreHistory;
+            :Cập nhật tỷ lệ trả đúng hạn;
+          }
+          
+          if (Đã trả hết?) then (rồi)
+            :Cập nhật trạng thái khoản vay (Đã trả xong);
+            if (Có thế chấp?) then (có)
+              :Giải phóng tài sản thế chấp;
+            endif
+            
+            partition "Bonus điểm khi trả hết nợ" {
+              :Tăng thêm điểm tín dụng (+15 điểm);
+              :Lưu vào CreditScoreHistory;
+            }
+          endif
+          
+          :Gửi thông báo thành công;
+          stop
+        endif
+      endif
+  }
+  
+else (Thủ công)
+  partition "Trả thủ công (Manual Payment)" {
+    |Khách hàng|
+    :Chọn kỳ trả nợ và số tiền;
+    note right
+    - Trả đủ kỳ này
+    - Trả trước nhiều kỳ
+    end note
+    
+    |Hệ thống|
+    :Kiểm tra và khóa tài khoản;
+    
+    if (Số dư tài khoản đủ?) then (không)
+      :Hủy giao dịch;
+      |Khách hàng|
+      :Lỗi: Số dư không đủ;
+      stop
+    else (có)
+      |Hệ thống|
+      :Trừ tiền từ tài khoản;
+      :Ghi nhận giao dịch trả nợ;
+      :Ghi nhận khoản thanh toán;
+      :Cập nhật lịch trả nợ;
+      :Cập nhật số dư nợ còn lại;
+      
+      if (Đã trả hết toàn bộ?) then (rồi)
+        :Cập nhật trạng thái khoản vay (Đã trả xong);
+        
+        if (Có tài sản thế chấp?) then (có)
+          :Giải phóng tài sản thế chấp;
+          :Gửi thông báo giải phóng tài sản;
+        endif
+        
+        :Cập nhật điểm tín dụng (tăng);
+      endif
+      
+      |Khách hàng|
+      :Hiển thị biên lai;
+      :Nhận thông báo thành công;
+      stop
+    endif
+  }
+endif
+
+@enduml

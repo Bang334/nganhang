@@ -1,0 +1,69 @@
+@startuml Thẩm định và Phê duyệt Vay
+autonumber
+title Luồng Thẩm định và Phê duyệt Khoản Vay
+
+actor "Nhân viên Tín dụng" as LoanOfficer
+participant "System" as System
+database "Database" as DB
+
+LoanOfficer -> System: Login và xem hồ sơ chờ duyệt
+System -> DB: SELECT * FROM Loans\nWHERE status = 'PENDING'\nORDER BY application_date
+DB --> System: Danh sách hồ sơ
+
+LoanOfficer -> System: Chọn hồ sơ để thẩm định
+System -> DB: Load thông tin chi tiết\n(Customer, Loan, Collateral)
+DB --> System: Full loan info
+System --> LoanOfficer: Hiển thị thông tin hồ sơ
+
+== Bước 1: Đánh giá Tín dụng ==
+LoanOfficer -> System: Nhập thu nhập, tỷ lệ nợ/thu nhập
+System -> System: Tính điểm tín dụng\nScore = f(income, debt_ratio, history)
+System -> DB: INSERT/UPDATE CreditScores
+DB --> System: credit_score_id
+System --> LoanOfficer: Hiển thị điểm và xếp hạng\n(AAA, AA, A, BBB, etc.)
+
+== Bước 2: Thẩm định Tài sản (nếu có) ==
+alt Có tài sản thế chấp
+    LoanOfficer -> System: Nhập giá trị thẩm định thực tế
+    System -> System: Tính LTV ratio\nLTV = (Loan / Collateral) * 100%
+    
+    alt LTV hợp lệ (≤ Max LTV)
+        System -> DB: UPDATE Collaterals\nSET appraised_value = ?,\nappraised_by = ?,\nstatus = 'AVAILABLE'
+        DB --> System: OK
+        System --> LoanOfficer: Tài sản hợp lệ
+    else LTV vượt mức
+        System --> LoanOfficer: Cảnh báo: LTV vượt mức cho phép
+    end
+end
+
+== Bước 3: Quyết định Phê duyệt ==
+alt Phê duyệt
+    LoanOfficer -> System: Nhập số tiền duyệt,\nlãi suất, thời hạn
+    System -> System: Tính khoản trả hàng tháng
+    
+    LoanOfficer -> System: Xác nhận phê duyệt
+    System -> DB: UPDATE Loans\nSET status = 'APPROVED',\napproved_amount = ?,\napproved_by = ?,\napproved_date = NOW()
+    DB --> System: OK
+    
+    System -> DB: Generate LoanPaymentSchedule\n(Lịch trả nợ)
+    DB --> System: OK
+    
+    System --> LoanOfficer: Phê duyệt thành công
+    System -> System: Gửi thông báo cho khách hàng
+    
+else Từ chối
+    LoanOfficer -> System: Nhập lý do từ chối
+    System -> DB: UPDATE Loans\nSET status = 'REJECTED',\nrejection_reason = ?
+    DB --> System: OK
+    
+    alt Có tài sản thế chấp
+        System -> DB: UPDATE Collaterals\nSET status = 'AVAILABLE'
+        DB --> System: OK
+    end
+    
+    System --> LoanOfficer: Từ chối thành công
+    System -> System: Gửi thông báo cho khách hàng
+end
+
+@enduml
+

@@ -1,0 +1,83 @@
+@startuml Trả Nợ Hàng Tháng
+title Activity Diagram - Trả Nợ Khoản Vay
+
+|Khách hàng|
+start
+:Đăng nhập;
+:Chọn khoản vay cần trả;
+
+if (Phương thức trả?) then (Tự động)
+  |Hệ thống|
+  :Kiểm tra ngày đáo hạn;
+  
+  if (Đến ngày trả?) then (chưa)
+    :Chờ đến ngày trả;
+    stop
+  else (rồi)
+    if (Số dư đủ?) then (không)
+      :Ghi nhận quá hạn;
+      :Gửi thông báo số dư không đủ;
+      stop
+    else (có)
+      :Xử lý thanh toán;
+      :Cập nhật thông tin khoản vay;
+      
+      if (Trả đúng hạn?) then (có)
+        :Tăng điểm tín dụng (+5);
+        :Lưu vào CreditScoreHistory;
+      endif
+      
+      if (Đã trả hết?) then (rồi)
+        :Cập nhật trạng thái (Đã trả xong);
+        if (Có thế chấp?) then (có)
+          :Giải phóng tài sản;
+        endif
+        :Tăng thêm điểm tín dụng (+15);
+        :Lưu vào CreditScoreHistory;
+      endif
+      
+      :Gửi thông báo thành công;
+      stop
+    endif
+  endif
+  
+else (Thủ công)
+  |Khách hàng|
+  :Chọn kỳ trả nợ và số tiền;
+  
+  |Hệ thống|
+  if (Số dư đủ?) then (không)
+    |Khách hàng|
+    :Lỗi: Số dư không đủ;
+    stop
+  else (có)
+    |Hệ thống|
+    :Xử lý thanh toán;
+    :Cập nhật thông tin khoản vay;
+    
+    if (Trả đúng hạn hoặc trả trước?) then (có)
+      :Tăng điểm tín dụng (+5 đến +10);
+      :Lưu vào CreditScoreHistory;
+    else (trễ)
+      :Tính số ngày trễ;
+      :Giảm điểm tín dụng;
+      :Lưu vào CreditScoreHistory;
+    endif
+    
+    if (Đã trả hết?) then (rồi)
+      :Cập nhật trạng thái (Đã trả xong);
+      if (Có thế chấp?) then (có)
+        :Giải phóng tài sản;
+      endif
+      :Tăng thêm điểm tín dụng (+15);
+      :Lưu vào CreditScoreHistory;
+    endif
+    
+    |Khách hàng|
+    :Hiển thị biên lai;
+    :Nhận thông báo thành công;
+    stop
+  endif
+endif
+
+@enduml

@@ -1,0 +1,140 @@
+@startuml Data Flow Diagram
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title Hệ thống Quản lý Ngân hàng - Data Flow Diagram
+
+actor "Khách hàng" as Customer
+actor "Nhân viên" as Staff
+
+rectangle "Frontend Layer" {
+    component "Customer\nPortal" as CustomerPortal
+    component "Staff\nPortal" as StaffPortal
+}
+
+rectangle "API Gateway" {
+    component "Request\nRouter" as Router
+    component "Auth\nMiddleware" as AuthMW
+    component "Rate\nLimiter" as RateLimiter
+}
+
+rectangle "Application Services" {
+    component "Account\nService" as AccountService
+    component "Transaction\nService" as TransactionService
+    component "Loan\nService" as LoanService
+    component "Savings\nService" as SavingsService
+}
+
+rectangle "Business Logic" {
+    component "Credit\nCalculator" as CreditCalc
+    component "Interest\nCalculator" as InterestCalc
+    component "LTV\nCalculator" as LTVCalc
+    component "Payment\nScheduler" as PaymentScheduler
+}
+
+rectangle "Data Layer" {
+    component "Account\nRepository" as AccountRepo
+    component "Transaction\nRepository" as TransactionRepo
+    component "Loan\nRepository" as LoanRepo
+    component "Cache\nLayer" as Cache
+}
+
+database "MySQL\nDatabase" as MySQLDB
+
+' Customer Flow
+Customer --> CustomerPortal : "1. Request"
+CustomerPortal --> Router : "2. API Request"
+Router --> AuthMW : "3. Authenticate"
+AuthMW --> RateLimiter : "4. Check Rate Limit"
+RateLimiter --> AccountService : "5. Route Request"
+
+' Account Service Flow
+AccountService --> AccountRepo : "6. Query Data"
+AccountRepo --> Cache : "7. Check Cache"
+Cache --> MySQLDB : "8. Cache Miss\nQuery DB"
+MySQLDB --> Cache : "9. Return Data"
+Cache --> AccountRepo : "10. Return Data"
+AccountRepo --> AccountService : "11. Return Result"
+AccountService --> CustomerPortal : "12. Response"
+CustomerPortal --> Customer : "13. Display"
+
+' Transaction Flow
+CustomerPortal --> TransactionService : "Transfer Request"
+TransactionService --> AccountRepo : "Check Balance"
+AccountRepo --> MySQLDB : "Query Balance"
+MySQLDB --> AccountRepo : "Return Balance"
+AccountRepo --> TransactionService : "Balance Info"
+
+TransactionService --> TransactionRepo : "Create Transaction"
+TransactionRepo --> MySQLDB : "Insert Transaction"
+MySQLDB --> TransactionRepo : "Confirm"
+TransactionRepo --> TransactionService : "Transaction ID"
+
+TransactionService --> AccountRepo : "Update Balances"
+AccountRepo --> MySQLDB : "Update Accounts"
+MySQLDB --> AccountRepo : "Confirm"
+AccountRepo --> TransactionService : "Success"
+TransactionService --> CustomerPortal : "Transaction Result"
+
+' Loan Application Flow
+CustomerPortal --> LoanService : "Loan Application"
+LoanService --> CreditCalc : "Calculate Credit Score"
+CreditCalc --> LoanRepo : "Get Credit History"
+LoanRepo --> MySQLDB : "Query History"
+MySQLDB --> LoanRepo : "Return Data"
+LoanRepo --> CreditCalc : "History Data"
+CreditCalc --> LoanService : "Credit Score"
+
+LoanService --> LTVCalc : "Calculate LTV"
+LTVCalc --> LoanRepo : "Get Collateral Value"
+LoanRepo --> MySQLDB : "Query Collateral"
+MySQLDB --> LoanRepo : "Return Value"
+LoanRepo --> LTVCalc : "Collateral Data"
+LTVCalc --> LoanService : "LTV Ratio"
+
+LoanService --> LoanRepo : "Save Application"
+LoanRepo --> MySQLDB : "Insert Loan"
+MySQLDB --> LoanRepo : "Confirm"
+LoanRepo --> LoanService : "Loan ID"
+LoanService --> CustomerPortal : "Application Result"
+
+' Staff Flow
+Staff --> StaffPortal : "Request"
+StaffPortal --> Router : "API Request"
+Router --> AuthMW : "Authenticate"
+AuthMW --> RateLimiter : "Check Rate Limit"
+RateLimiter --> AccountService : "Route Request"
+AccountService --> AccountRepo : "Query/Update"
+AccountRepo --> MySQLDB : "Database Operation"
+MySQLDB --> AccountRepo : "Result"
+AccountRepo --> AccountService : "Return"
+AccountService --> StaffPortal : "Response"
+StaffPortal --> Staff : "Display"
+
+note right of Router
+  **Request Flow:**
+  1. Receive Request
+  2. Authenticate
+  3. Rate Limit Check
+  4. Route to Service
+end note
+
+note right of TransactionService
+  **Transaction Flow:**
+  1. Validate Request
+  2. Check Balance
+  3. Create Transaction
+  4. Update Balances
+  5. Return Result
+end note
+
+note right of MySQLDB
+  **Data Flow:**
+  - Read Operations
+  - Write Operations
+  - Transaction Management
+  - Data Consistency
+end note
+
+@enduml
+

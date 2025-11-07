@@ -1,0 +1,62 @@
+@startuml Gia Hạn Khoản Vay
+title Activity Diagram - Gia Hạn Khoản Vay Khi Đáo Hạn
+
+|Hệ thống|
+start
+:Khoản vay sắp đáo hạn;
+
+|Khách hàng|
+:Chọn "Gia hạn";
+:Nhập thời gian gia hạn thêm;
+
+|Hệ thống|
+:Tính toán khoản vay mới;
+note right
+  - Ngày đáo hạn mới
+  - Lãi suất mới (nếu có)
+  - Khoản trả hàng tháng mới
+end note
+
+:Hiển thị preview gia hạn;
+
+|Khách hàng|
+:Xác nhận gia hạn;
+
+|Hệ thống|
+:Tạo yêu cầu gia hạn;
+:Gửi đến Nhân viên Tín dụng;
+
+|Nhân viên Tín dụng|
+:Xem xét hồ sơ;
+note right
+  Kiểm tra:
+  - Lịch sử trả nợ
+  - Điểm tín dụng
+  - Thu nhập
+  - Khả năng trả nợ
+end note
+
+if (Phê duyệt?) then (Từ chối)
+  :Cập nhật yêu cầu = 'Từ chối';
+  :Nhập lý do;
+  
+  |Khách hàng|
+  :Nhận thông báo từ chối;
+  :Phải trả hết nợ đúng hạn;
+  stop
+  
+else (Phê duyệt)
+  |Hệ thống|
+  :Cập nhật ngày đáo hạn mới;
+  :Xóa lịch trả nợ cũ (các kỳ chưa trả);
+  :Tạo lịch trả nợ mới;
+  :Cập nhật yêu cầu = 'Đã duyệt';
+  
+  |Khách hàng|
+  :Nhận thông báo phê duyệt;
+  :Xem lịch trả nợ mới;
+  stop
+endif
+
+@enduml
+

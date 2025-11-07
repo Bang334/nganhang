@@ -1,0 +1,221 @@
+ PHÂN TÍCH THIẾT KẾ KIẾN TRÚC HỆ THỐNG
+
+ TỔNG QUAN
+
+File này phân tích kiến trúc hệ thống quản lý ngân hàng, tập trung vào:
+- Công nghệ và công cụ sử dụng
+- Kiến trúc database và các cơ chế tự động hóa (triggers, procedures, views)
+- Các biện pháp tối ưu và bảo mật
+
+Lưu ý: Đây là phân tích kiến trúc tập trung vào Database Architecture và Technology Stack. Một phân tích kiến trúc đầy đủ thường cần thêm các phần về System Architecture, Component Architecture, Deployment Architecture, và Non-functional Requirements.
+
+
+
+ 1. CÔNG NGHỆ SỬ DỤNG VÀ LÝ DO LỰA CHỌN
+
+ 1.1. Frontend
+
+ React 18
+Lý do chọn:
+- Component-based architecture: Dễ tái sử dụng code, phù hợp với hệ thống có nhiều dashboard (Customer, Admin, Teller, Loan Officer)
+- Virtual DOM: Hiệu suất tốt với ứng dụng có nhiều tương tác người dùng
+- Ecosystem phong phú: Nhiều thư viện hỗ trợ (routing, charts, forms)
+- Cộng đồng lớn: Dễ tìm tài liệu và hỗ trợ
+- Hooks API: Quản lý state đơn giản, không cần Redux cho ứng dụng vừa phải
+
+ Vite 7.1.7
+Lý do chọn:
+- Fast HMR (Hot Module Replacement): Phát triển nhanh, thay đổi code hiển thị ngay
+- Build nhanh: Sử dụng ES modules native, không cần bundle trong development
+- Tối ưu production: Tự động code splitting, tree shaking
+- Cấu hình đơn giản: Ít config hơn Webpack
+
+ React Router DOM 7.9.4
+Lý do chọn:
+- Declarative routing: Định nghĩa routes rõ ràng, dễ quản lý
+- Role-based routing: Hỗ trợ tốt cho việc bảo vệ routes theo role (CUSTOMER, ADMIN, TELLER, LOAN_OFFICER)
+- Nested routes: Phù hợp với cấu trúc dashboard có nhiều trang con
+
+ Recharts 3.3.0
+Lý do chọn:
+- Dễ sử dụng: API đơn giản, tương thích tốt với React
+- Responsive: Tự động điều chỉnh kích thước
+- Đa dạng biểu đồ: Hỗ trợ bar, line, pie charts phù hợp với dashboard ngân hàng
+
+ Lucide React
+Lý do chọn:
+- Icon đẹp, hiện đại: Phù hợp với UI/UX hiện đại
+- Tree-shakeable: Chỉ import icons cần dùng, giảm bundle size
+- SVG-based: Chất lượng tốt ở mọi kích thước
+
+ 1.2. Database
+
+ MySQL 8.0
+Lý do chọn:
+- Mature và stable: Được sử dụng rộng rãi trong ngân hàng, đã được kiểm chứng
+- ACID compliance: Đảm bảo tính nhất quán dữ liệu cho giao dịch tài chính
+- Performance tốt: Xử lý tốt với dữ liệu có cấu trúc
+- Triggers và Stored Procedures: Hỗ trợ business logic ở database layer
+- Replication: Dễ dàng thiết lập backup và high availability
+- Cost-effective: Open source, phù hợp với dự án học tập
+
+ InnoDB Engine
+Lý do chọn:
+- Transaction support: Hỗ trợ ACID transactions, quan trọng cho giao dịch ngân hàng
+- Foreign key constraints: Đảm bảo referential integrity
+- Row-level locking: Hiệu suất tốt hơn với concurrent transactions
+- Crash recovery: Tự động phục hồi sau sự cố
+
+ Character Set utf8mb4
+Lý do chọn:
+- Unicode đầy đủ: Hỗ trợ tiếng Việt và các ký tự đặc biệt
+- Emoji support: Hỗ trợ emoji nếu cần trong tương lai
+- Standard: utf8mb4 là chuẩn hiện đại, thay thế utf8
+
+ 1.3. Backend (Dự kiến)
+
+ Spring Boot hoặc Node.js + Express
+Lý do cân nhắc:
+- Spring Boot: 
+  - Phù hợp nếu team quen Java
+  - Enterprise-ready, nhiều tính năng sẵn có (security, data access)
+  - Phù hợp với hệ thống lớn, phức tạp
+- Node.js + Express:
+  - JavaScript end-to-end (cùng ngôn ngữ với React)
+  - Non-blocking I/O, phù hợp với nhiều concurrent requests
+  - Ecosystem phong phú (npm packages)
+  - Dễ học và phát triển nhanh
+
+ JWT Token
+Lý do chọn:
+- Stateless: Không cần lưu session trên server, dễ scale
+- Secure: Signature đảm bảo token không bị giả mạo
+- Flexible: Có thể chứa thông tin user, role
+- Standard: Được sử dụng rộng rãi, nhiều thư viện hỗ trợ
+
+ RESTful API
+Lý do chọn:
+- Standard: Chuẩn phổ biến, dễ hiểu và maintain
+- Stateless: Mỗi request độc lập, dễ cache và scale
+- Resource-based: URL rõ ràng, dễ đọc (GET /api/customers, POST /api/loans)
+- HTTP methods: Sử dụng đúng semantic (GET, POST, PUT, DELETE)
+
+ 2. KIẾN TRÚC HỆ THỐNG
+
+Hệ thống được thiết kế theo mô hình 3-Tier Architecture:
+- Presentation Layer: React frontend với 4 dashboard (Customer, Admin, Teller, Loan Officer)
+- Business Logic Layer: Backend API (dự kiến)
+- Data Layer: MySQL database với 19 bảng chính
+
+ 3. DATABASE AUTOMATION (Tóm tắt)
+
+ 3.1. Triggers cần thiết
+Hệ thống cần các triggers để tự động hóa nghiệp vụ:
+- Tính LTV ratio: Tự động tính khi tài sản thế chấp được định giá lại
+- Cập nhật số dư: Tự động cập nhật balance khi có giao dịch thành công
+- Cập nhật outstanding_balance: Tự động trừ nợ khi có thanh toán
+- Cập nhật điểm tín dụng: Tự động điều chỉnh điểm khi trả nợ đúng hạn/quá hạn
+- Cập nhật status: Tự động chuyển trạng thái khoản vay, sổ tiết kiệm, thẻ khi đáo hạn
+- Tính lãi tiết kiệm: Tự động tính lãi hàng tháng (scheduled event)
+- Kiểm tra số dư tối thiểu: Ngăn chặn giao dịch vi phạm quy định
+- Ghi log: Tự động ghi lịch sử thay đổi điểm tín dụng
+
+Lý do sử dụng triggers: Đảm bảo tính nhất quán dữ liệu, giảm thiểu lỗi do xử lý thủ công, tự động hóa các nghiệp vụ định kỳ.
+
+ 3.2. Stored Procedures cần thiết
+Các procedures để đóng gói logic nghiệp vụ phức tạp:
+- Tạo khoản vay: Kiểm tra điều kiện, tính LTV, tạo lịch trả nợ
+- Xử lý thanh toán: Tính phí quá hạn, cập nhật số dư, tạo giao dịch
+- Tính lãi tiết kiệm: Tính lãi định kỳ cho các sổ tiết kiệm
+- Xử lý đáo hạn: Xử lý tái tục hoặc rút tiền khi đáo hạn
+- Tính điểm tín dụng: Tính toán lại điểm dựa trên lịch sử thanh toán
+
+Lý do sử dụng procedures: Tập trung logic nghiệp vụ, tái sử dụng code, dễ maintain và test.
+
+ 3.3. Views cần thiết
+Các views để tổng hợp dữ liệu từ nhiều bảng:
+- LoanDetails: Thông tin chi tiết khoản vay kèm khách hàng, tài sản
+- CustomerSummary: Tổng hợp tài khoản, số dư, khoản vay của khách hàng
+- TransactionDetails: Chi tiết giao dịch với thông tin tài khoản
+- SavingsSummary: Tổng hợp sổ tiết kiệm với số ngày đến đáo hạn
+- OverdueLoans: Danh sách khoản vay quá hạn
+
+Lý do sử dụng views: Đơn giản hóa queries phức tạp, tái sử dụng, dễ maintain.
+
+ 4. DATABASE OPTIMIZATION
+
+ 4.1. Indexes
+- Primary keys: Trên tất cả các bảng
+- Foreign keys: Tự động tạo indexes
+- Single column indexes: customer_id, account_number, loan_number, transaction_date, status
+- Composite indexes: (customer_id, status), (customer_id, transaction_date DESC), (loan_id, due_date)
+
+Lý do: Tăng tốc độ query, đặc biệt quan trọng với bảng Transactions và Loans có nhiều dữ liệu.
+
+ 5. BẢO MẬT VÀ PHÂN QUYỀN
+
+ 5.1. Database Level
+- Foreign key constraints: Đảm bảo referential integrity
+- CHECK constraints: Ràng buộc dữ liệu (amount > 0, score range 300-850)
+- UNIQUE constraints: Ngăn trùng lặp (account_number, loan_number, email)
+
+ 5.2. Application Level
+- Role-based access control: 4 roles (CUSTOMER, TELLER, LOAN_OFFICER, ADMIN) với quyền truy cập khác nhau
+- Route protection: Kiểm tra role trước khi cho phép truy cập route
+- Password hashing: Sử dụng bcrypt để hash password (không lưu plain text)
+
+ 8. CÁC PHẦN CÒN THIẾU TRONG PHÂN TÍCH KIẾN TRÚC ĐẦY ĐỦ
+
+Một phân tích kiến trúc phần mềm đầy đủ thường cần thêm các phần sau:
+
+ 8.1. System Architecture (Kiến trúc hệ thống)
+- Mô hình kiến trúc tổng thể: 3-tier, MVC, Microservices, etc.
+- Component Architecture: Các module/component chính và mối quan hệ
+- Layered Architecture: Phân tầng rõ ràng (Presentation, Business, Data)
+- Communication Patterns: Cách các component giao tiếp (REST, Message Queue, etc.)
+
+ 8.2. Deployment Architecture (Kiến trúc triển khai)
+- Infrastructure: Server, database, load balancer
+- Scalability: Horizontal/vertical scaling strategy
+- High Availability: Failover, redundancy
+- Network Architecture: Network topology, security zones
+
+ 8.3. Data Flow Architecture (Kiến trúc luồng dữ liệu)
+- Request Flow: Luồng xử lý request từ client đến database
+- Data Flow: Cách dữ liệu di chuyển giữa các layer
+- Event Flow: Xử lý events, async operations
+
+ 8.4. Integration Architecture (Kiến trúc tích hợp)
+- External Systems: Tích hợp với hệ thống bên ngoài (Payment Gateway, SMS, Email)
+- API Design: RESTful API structure, endpoints
+- Data Exchange: Format dữ liệu trao đổi (JSON, XML)
+
+ 8.5. Security Architecture (Kiến trúc bảo mật)
+- Authentication & Authorization: Cơ chế xác thực, phân quyền
+- Data Encryption: Mã hóa dữ liệu nhạy cảm
+- Network Security: Firewall, VPN, SSL/TLS
+- Audit & Logging: Ghi log, audit trail
+
+ 8.6. Non-functional Requirements (Yêu cầu phi chức năng)
+- Performance: Response time, throughput, latency
+- Scalability: Khả năng mở rộng
+- Reliability: Uptime, error handling
+- Maintainability: Code organization, documentation
+- Usability: User experience
+
+ 8.7. Risk Analysis (Phân tích rủi ro)
+- Technical Risks: Rủi ro kỹ thuật và giải pháp
+- Business Risks: Rủi ro nghiệp vụ
+- Mitigation Strategies: Chiến lược giảm thiểu rủi ro
+
+ 8.8. Design Patterns (Mẫu thiết kế)
+- Creational Patterns: Factory, Singleton
+- Structural Patterns: Adapter, Facade
+- Behavioral Patterns: Observer, Strategy
+
+ 9. KẾT LUẬN
+
+File này tập trung vào Database Architecture và Technology Stack - hai phần quan trọng của kiến trúc hệ thống. Hệ thống được thiết kế với kiến trúc 3 tầng rõ ràng, database được normalize tốt với 19 bảng chính. Các trigger, stored procedures và views được đề xuất nhằm tự động hóa các nghiệp vụ quan trọng, đảm bảo tính nhất quán dữ liệu và giảm thiểu lỗi do xử lý thủ công.
+
+Để có phân tích kiến trúc đầy đủ, cần bổ sung thêm các phần về System Architecture, Deployment Architecture, và Non-functional Requirements như đã nêu ở mục 8.
+

@@ -1,0 +1,45 @@
+@startuml Chuyển Khoản
+title Activity Diagram - Chuyển Khoản
+
+||Khách hàng|
+start
+:Đăng nhập hệ thống;
+:Chọn "Chuyển khoản";
+:Nhập thông tin chuyển khoản;
+note right
+- Số tài khoản người nhận
+- Số tiền
+- Nội dung chuyển khoản
+end note
+
+:Xác nhận chuyển khoản;
+
+||Hệ thống|
+if (Tài khoản người nhận tồn tại?) then (không)
+  |Khách hàng|
+  :Lỗi: Số tài khoản không tồn tại;
+  stop
+else (có)
+  |Hệ thống|
+  :Kiểm tra và khóa tài khoản nguồn;
+  
+  if (Số dư đủ?) then (không)
+    :Hủy giao dịch;
+    |Khách hàng|
+    :Lỗi: Số dư không đủ;
+    stop
+  else (có)
+    |Hệ thống|
+    :Trừ tiền từ tài khoản nguồn;
+    :Cộng tiền vào tài khoản đích;
+    :Ghi nhận giao dịch chuyển khoản;
+    :Cập nhật số dư cả hai tài khoản;
+    
+    |Khách hàng|
+    :Hiển thị biên lai;
+    :Nhận thông báo thành công;
+    stop
+  endif
+endif
+
+@enduml

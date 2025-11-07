@@ -1,0 +1,129 @@
+@startuml ER Diagram
+!define TABLE(x) entity x << (T,#FFAAAA) >>
+!define PK(x) <u>x</u>
+!define FK(x) <i>x</i>
+
+skinparam linetype ortho
+
+title Hệ thống Ngân hàng - ER Diagram (Đơn giản)
+
+' Main Entities
+TABLE(Branches) {
+    PK(branch_id) : INT
+    branch_code : VARCHAR(20)
+    branch_name : VARCHAR(200)
+    address : VARCHAR(500)
+    status : ENUM
+}
+
+TABLE(Employees) {
+    PK(employee_id) : INT
+    employee_code : VARCHAR(20)
+    FK(branch_id) : INT
+    FK(role_id) : INT
+    full_name : VARCHAR(200)
+    email : VARCHAR(100)
+    username : VARCHAR(50)
+    status : ENUM
+}
+
+TABLE(Customers) {
+    PK(customer_id) : INT
+    customer_code : VARCHAR(20)
+    full_name : VARCHAR(200)
+    email : VARCHAR(100)
+    phone : VARCHAR(20)
+    FK(registered_branch_id) : INT
+    username : VARCHAR(50)
+    status : ENUM
+}
+
+TABLE(Accounts) {
+    PK(account_id) : INT
+    account_number : VARCHAR(20)
+    FK(customer_id) : INT
+    FK(account_type_id) : INT
+    FK(branch_id) : INT
+    balance : DECIMAL(18,2)
+    status : ENUM
+}
+
+TABLE(Transactions) {
+    PK(transaction_id) : BIGINT
+    transaction_code : VARCHAR(50)
+    FK(from_account_id) : INT
+    FK(to_account_id) : INT
+    amount : DECIMAL(18,2)
+    status : ENUM
+}
+
+TABLE(SavingsDeposits) {
+    PK(deposit_id) : INT
+    deposit_number : VARCHAR(20)
+    FK(customer_id) : INT
+    FK(account_id) : INT
+    principal_amount : DECIMAL(18,2)
+    interest_rate : DECIMAL(5,2)
+    term_months : INT
+    status : ENUM
+}
+
+TABLE(Loans) {
+    PK(loan_id) : INT
+    loan_number : VARCHAR(20)
+    FK(customer_id) : INT
+    FK(account_id) : INT
+    FK(loan_officer_id) : INT
+    loan_amount : DECIMAL(18,2)
+    interest_rate : DECIMAL(5,2)
+    FK(collateral_id) : INT
+    status : ENUM
+}
+
+TABLE(Collaterals) {
+    PK(collateral_id) : INT
+    FK(customer_id) : INT
+    FK(collateral_type_id) : INT
+    collateral_name : VARCHAR(200)
+    appraised_value : DECIMAL(18,2)
+    status : ENUM
+}
+
+TABLE(CreditScores) {
+    PK(score_id) : INT
+    FK(customer_id) : INT
+    score : INT
+    grade : ENUM
+    calculated_at : TIMESTAMP
+}
+
+TABLE(Cards) {
+    PK(card_id) : INT
+    card_number : VARCHAR(255)
+    FK(account_id) : INT
+    card_type : ENUM
+    status : ENUM
+}
+
+' Relationships
+Branches ||--o{ Employees : "manages"
+Branches ||--o{ Customers : "registered_at"
+Branches ||--o{ Accounts : "opened_at"
+
+Customers ||--o{ Accounts : "owns"
+Customers ||--o{ SavingsDeposits : "has"
+Customers ||--o{ Loans : "borrows"
+Customers ||--o{ Collaterals : "owns"
+Customers ||--o{ CreditScores : "has"
+
+Accounts ||--o{ Transactions : "from/to"
+Accounts ||--o{ Cards : "has"
+Accounts ||--o{ SavingsDeposits : "linked"
+Accounts ||--o{ Loans : "disbursed_to"
+
+Employees ||--o{ Loans : "processes"
+
+Collaterals ||--o| Loans : "secures"
+
+@enduml
+

@@ -1,0 +1,77 @@
+@startuml Mở tài khoản
+
+title Nghiệp vụ: Mở tài khoản thanh toán
+
+actor Customer
+actor Teller
+participant UI
+participant AccountController
+participant CustomerService
+participant AccountService
+participant DB
+participant SMS
+
+== Kiểm tra khách hàng ==
+Teller -> UI: Nhập mã khách hàng
+UI -> AccountController: findCustomer(customerId)
+AccountController -> CustomerService: getCustomer(customerId)
+CustomerService -> DB: SELECT * FROM customer\nWHERE customer_id = ?
+
+alt Khách hàng tồn tại
+  DB --> CustomerService: Customer data
+  CustomerService --> AccountController: Customer object
+  AccountController --> UI: Display customer info
+  UI --> Teller: Hiển thị: Họ tên,\nCMND, Địa chỉ
+  
+else Khách hàng chưa có
+  DB --> CustomerService: NULL
+  CustomerService --> AccountController: Customer not found
+  AccountController --> UI: Error
+  UI --> Teller: "Khách hàng chưa có\ntrong hệ thống"
+  
+  Teller -> UI: Tạo hồ sơ mới
+  UI -> AccountController: createCustomer(data)
+  AccountController -> CustomerService: create(data)
+  CustomerService -> DB: INSERT INTO customer
+  DB --> CustomerService: customer_id
+  CustomerService --> AccountController: New customer created
+end
+
+== Tạo tài khoản ==
+Teller -> UI: Chọn loại TK,\nNhập số tiền gửi ban đầu
+UI -> AccountController: createAccount(customerId,\n  accountTypeId, initialDeposit)
+
+AccountController -> AccountController: Validate:\n- amount >= 100,000\n- accountType exists
+
+AccountController -> AccountService: createAccount(data)
+AccountService -> DB: BEGIN TRANSACTION
+
+AccountService -> AccountService: Generate account_number\n= branch_code + random(7 digits)
+
+AccountService -> DB: INSERT INTO account\n(customer_id, account_number,\n balance, status='ACTIVE')
+DB --> AccountService: account_id
+
+AccountService -> DB: INSERT INTO transaction\n(type='INITIAL_DEPOSIT',\n amount, status='SUCCESS')
+
+AccountService -> DB: COMMIT
+DB --> AccountService: Success
+
+AccountService --> AccountController: Account created
+AccountController --> UI: Success response
+UI --> Teller: In phiếu xác nhận
+
+== Thông báo ==
+AccountController -> SMS: sendSMS(phone, message)
+SMS --> AccountController: SMS sent
+
+Teller -> Customer: Giao phiếu\nvà số tài khoản
+
+note right of DB
+  Transaction đảm bảo ACID:
+  - Tạo account
+  - Ghi nhận deposit
+  - Cùng commit hoặc rollback
+end note
+
+@enduml
+

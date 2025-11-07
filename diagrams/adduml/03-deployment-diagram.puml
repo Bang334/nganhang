@@ -1,0 +1,145 @@
+@startuml Deployment Diagram
+skinparam nodeStyle rectangle
+skinparam linetype ortho
+
+title Hệ thống Quản lý Ngân hàng - Deployment Diagram
+
+cloud "Internet" {
+    node "Client Browser" as ClientBrowser
+    node "Mobile App\n(iOS/Android)" as MobileApp
+}
+
+cloud "DMZ\n(Demilitarized Zone)" {
+    node "Load Balancer\n(HAProxy/Nginx)" as LoadBalancer
+    node "Web Server\n(Nginx)" as WebServer
+}
+
+cloud "Application Server\nCluster" {
+    node "Frontend Server 1\n(React - Vite)" as Frontend1
+    node "Frontend Server 2\n(React - Vite)" as Frontend2
+    node "API Gateway\n(Kong/AWS API Gateway)" as APIGateway
+    node "Backend Server 1\n(Spring Boot/Node.js)" as Backend1
+    node "Backend Server 2\n(Spring Boot/Node.js)" as Backend2
+    node "Backend Server 3\n(Spring Boot/Node.js)" as Backend3
+}
+
+cloud "Database Cluster" {
+    database "MySQL Master\n(Primary)" as MySQLMaster
+    database "MySQL Slave 1\n(Read Replica)" as MySQLSlave1
+    database "MySQL Slave 2\n(Read Replica)" as MySQLSlave2
+}
+
+cloud "Cache & Message Queue" {
+    node "Redis Cache\n(Session & Cache)" as Redis
+    node "RabbitMQ\n(Message Queue)" as RabbitMQ
+}
+
+cloud "File Storage" {
+    node "File Server\n(Documents, Images)" as FileServer
+}
+
+cloud "External Services" {
+    node "SMS Gateway\n(Twilio/Viettel)" as SMSGateway
+    node "Email Service\n(SendGrid/AWS SES)" as EmailService
+    node "Payment Gateway\n(NAPAS/VNPay)" as PaymentGateway
+    node "CIC\n(Credit Bureau)" as CIC
+}
+
+cloud "Monitoring & Logging" {
+    node "ELK Stack\n(Elasticsearch, Logstash, Kibana)" as ELK
+    node "Prometheus\n(Metrics)" as Prometheus
+    node "Grafana\n(Dashboards)" as Grafana
+}
+
+' Client connections
+ClientBrowser --> LoadBalancer : "HTTPS (443)"
+MobileApp --> LoadBalancer : "HTTPS (443)"
+
+' Load Balancer to Web Server
+LoadBalancer --> WebServer : "HTTP (80)"
+
+' Web Server to Frontend
+WebServer --> Frontend1 : "Static Files"
+WebServer --> Frontend2 : "Static Files"
+
+' Frontend to API Gateway
+Frontend1 --> APIGateway : "REST API\n(HTTPS)"
+Frontend2 --> APIGateway : "REST API\n(HTTPS)"
+MobileApp --> APIGateway : "REST API\n(HTTPS)"
+
+' API Gateway to Backend
+APIGateway --> Backend1 : "Load Balanced"
+APIGateway --> Backend2 : "Load Balanced"
+APIGateway --> Backend3 : "Load Balanced"
+
+' Backend to Database
+Backend1 --> MySQLMaster : "Write\n(JDBC)"
+Backend2 --> MySQLMaster : "Write\n(JDBC)"
+Backend3 --> MySQLMaster : "Write\n(JDBC)"
+
+Backend1 --> MySQLSlave1 : "Read\n(JDBC)"
+Backend2 --> MySQLSlave2 : "Read\n(JDBC)"
+Backend3 --> MySQLSlave1 : "Read\n(JDBC)"
+
+' Database Replication
+MySQLMaster --> MySQLSlave1 : "Replication"
+MySQLMaster --> MySQLSlave2 : "Replication"
+
+' Backend to Cache & Queue
+Backend1 --> Redis : "Cache & Session"
+Backend2 --> Redis : "Cache & Session"
+Backend3 --> Redis : "Cache & Session"
+
+Backend1 --> RabbitMQ : "Async Tasks"
+Backend2 --> RabbitMQ : "Async Tasks"
+Backend3 --> RabbitMQ : "Async Tasks"
+
+' Backend to File Storage
+Backend1 --> FileServer : "File Operations"
+Backend2 --> FileServer : "File Operations"
+Backend3 --> FileServer : "File Operations"
+
+' Backend to External Services
+Backend1 --> SMSGateway : "SMS API"
+Backend1 --> EmailService : "Email API"
+Backend1 --> PaymentGateway : "Payment API"
+Backend1 --> CIC : "Credit Check API"
+
+' Monitoring connections
+Backend1 --> ELK : "Logs"
+Backend2 --> ELK : "Logs"
+Backend3 --> ELK : "Logs"
+MySQLMaster --> Prometheus : "Metrics"
+Backend1 --> Prometheus : "Metrics"
+Prometheus --> Grafana : "Visualization"
+
+note right of LoadBalancer
+  **Load Balancer:**
+  - SSL Termination
+  - Request Distribution
+  - Health Checks
+end note
+
+note right of MySQLMaster
+  **Database:**
+  - Master-Slave Replication
+  - Automatic Failover
+  - Daily Backups
+end note
+
+note right of Redis
+  **Cache:**
+  - Session Storage
+  - Query Results Cache
+  - Rate Limiting
+end note
+
+note bottom of Backend1
+  **Backend Servers:**
+  - Stateless Design
+  - Horizontal Scaling
+  - Health Monitoring
+end note
+
+@enduml
+

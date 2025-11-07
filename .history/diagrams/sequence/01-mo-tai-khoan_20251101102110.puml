@@ -1,0 +1,37 @@
+@startuml Mở Tài khoản
+autonumber
+title Luồng Mở Tài khoản Mới
+
+actor "Khách hàng" as Customer
+participant "Giao dịch viên" as Teller
+participant "System" as System
+database "Database" as DB
+
+Customer -> Teller: Yêu cầu mở tài khoản
+Teller -> System: Nhập thông tin KH\n(CMND, email, SĐT, thu nhập)
+System -> DB: Kiểm tra thông tin trùng lặp
+DB --> System: Kết quả kiểm tra
+
+alt Thông tin hợp lệ
+    Teller -> System: Chọn loại tài khoản\nvà số tiền nạp ban đầu
+    System -> System: Validate số tiền\n(min 100K)
+    
+    Teller -> System: Xác nhận tạo tài khoản
+    System -> DB: Tạo Customer
+    DB --> System: customer_id
+    
+    System -> DB: Tạo Account
+    DB --> System: account_id
+    
+    System -> DB: Tạo Transaction\n(Nạp tiền ban đầu)
+    DB --> System: transaction_id
+    
+    System --> Teller: Thành công\n(Số tài khoản)
+    Teller --> Customer: Giao số tài khoản\nvà sổ tài khoản
+else Thông tin không hợp lệ
+    System --> Teller: Lỗi validation
+    Teller --> Customer: Yêu cầu cung cấp\nthông tin chính xác
+end
+
+@enduml
+

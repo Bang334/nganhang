@@ -1,0 +1,42 @@
+@startuml Trả Hết Nợ Khi Đáo Hạn
+title Activity Diagram - Trả Hết Nợ Gốc Khi Đáo Hạn
+
+|Hệ thống|
+start
+:Khoản vay sắp đáo hạn;
+
+|Khách hàng|
+:Chọn "Trả hết và kết thúc";
+
+|Hệ thống|
+:Tính tổng tiền cần trả;
+note right
+  Gồm: dư nợ gốc + lãi + phí trễ hạn
+end note
+
+if (Số dư tài khoản đủ?) then (không)
+  |Khách hàng|
+  :Thông báo số dư không đủ;
+  :Yêu cầu nạp thêm tiền;
+  stop
+else (có)
+  |Hệ thống|
+  :Trừ tiền tài khoản;
+  :Ghi nhận thanh toán cuối cùng;
+  :Cập nhật trạng thái khoản vay = 'Đã thanh toán';
+  :Cập nhật dư nợ = 0;
+  
+  if (Có tài sản thế chấp?) then (có)
+    :Giải phóng tài sản thế chấp;
+    :Gửi thông báo giải phóng;
+  endif
+  
+  :Cải thiện điểm tín dụng;
+  
+  |Khách hàng|
+  :Nhận biên lai hoàn tất;
+  stop
+endif
+
+@enduml
+

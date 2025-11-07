@@ -1,0 +1,35 @@
+@startuml Tái Tục Gốc + Lãi - Tiết Kiệm
+title Activity Diagram - Tái Tục Gốc + Lãi (Sổ Tiết Kiệm)
+
+|Hệ thống|
+start
+:Sổ tiết kiệm đã đáo hạn;
+
+|Khách hàng|
+:Chọn "Tái tục gốc + lãi";
+:Chọn kỳ hạn mới;
+
+|Hệ thống|
+:Tính tổng gốc + lãi;
+:Tính lãi kép dự kiến;
+note right
+  Lãi kép mạnh hơn!
+  Gốc mới = Gốc cũ + Lãi
+end note
+
+:Hiển thị so sánh lợi ích;
+
+|Khách hàng|
+:Xác nhận tái tục;
+
+|Hệ thống|
+:Tạo sổ tiết kiệm mới (gốc + lãi);
+:Đóng sổ cũ;
+
+|Khách hàng|
+:Nhận số sổ mới với gốc lớn hơn;
+
+stop
+
+@enduml
+

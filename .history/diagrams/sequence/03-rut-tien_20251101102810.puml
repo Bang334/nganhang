@@ -1,0 +1,44 @@
+@startuml Rút Tiền
+autonumber
+title Luồng Rút Tiền Tại Quầy
+
+actor "Khách hàng" as Customer
+participant "Giao dịch viên" as Teller
+participant "System" as System
+database "Database" as DB
+
+Customer -> Teller: Yêu cầu rút tiền\n(CMND + Số TK)
+Teller -> System: Nhập STK, số tiền
+
+System -> DB: Tìm Account
+DB --> System: Account info
+
+alt Account hợp lệ
+    System -> System: Kiểm tra số dư\nvà hạn mức (min 50K, max 5M)
+    
+    alt Số dư đủ
+        Teller -> System: Xác nhận rút tiền
+        
+        System -> DB: BEGIN TRANSACTION
+        
+        System -> DB: UPDATE Account\nSET balance = balance - amount
+        DB --> System: OK
+        
+        System -> DB: INSERT Transaction\n(type = WITHDRAW)
+        DB --> System: transaction_id
+        
+        System -> DB: COMMIT
+        
+        System --> Teller: Rút tiền thành công\n(Biên lai)
+        Teller --> Customer: Giao tiền mặt\nvà biên lai
+    else Số dư không đủ
+        System --> Teller: Lỗi: Số dư không đủ
+        Teller --> Customer: Thông báo không đủ tiền
+    end
+else Account không hợp lệ
+    System --> Teller: Lỗi: Tài khoản không hợp lệ
+    Teller --> Customer: Thông báo lỗi
+end
+
+@enduml
+

@@ -1,0 +1,39 @@
+@startuml Nạp Tiền
+autonumber
+title Luồng Nạp Tiền Tại Quầy
+
+actor "Khách hàng" as Customer
+participant "Giao dịch viên" as Teller
+participant "System" as System
+database "Database" as DB
+
+Customer -> Teller: Yêu cầu nạp tiền\n(Tiền mặt + Số TK)
+Teller -> System: Nhập STK và số tiền
+
+System -> DB: Tìm Account
+DB --> System: Account info
+
+alt Account tồn tại và ACTIVE
+    Teller -> System: Xác nhận số tiền
+    System -> System: Validate amount
+    
+    System -> DB: BEGIN TRANSACTION
+    
+    System -> DB: UPDATE Account\nSET balance = balance + amount
+    DB --> System: OK
+    
+    System -> DB: INSERT Transaction\n(type = DEPOSIT)
+    DB --> System: transaction_id
+    
+    System -> DB: COMMIT
+    
+    System --> Teller: Nạp tiền thành công\n(Biên lai)
+    Teller --> Customer: Giao biên lai\nvà tiền thừa (nếu có)
+    
+else Account không tồn tại/không hoạt động
+    System --> Teller: Lỗi: Tài khoản không hợp lệ
+    Teller --> Customer: Thông báo lỗi
+end
+
+@enduml
+

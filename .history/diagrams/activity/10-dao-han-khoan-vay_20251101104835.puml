@@ -1,0 +1,228 @@
+@startuml Đáo hạn Khoản Vay
+title Activity Diagram - Đáo hạn Khoản Vay (Loan Maturity)
+
+|Hệ thống (Scheduled Job)|
+start
+:Chạy job hàng ngày;
+note right
+Kiểm tra các khoản vay
+sắp đến maturity_date
+end note
+
+:SELECT loans WHERE
+maturity_date <= TODAY + 30
+AND status = 'ACTIVE';
+
+if (Có khoản vay sắp đáo hạn?) then (không)
+  :Không có việc gì;
+  stop
+else (có)
+  :Gửi thông báo cho khách hàng;
+  note right
+  "Khoản vay của bạn sẽ đáo hạn
+  vào ngày X. Vui lòng chuẩn bị
+  trả hết nợ gốc còn lại hoặc
+  đăng ký gia hạn."
+  end note
+  
+  |Khách hàng|
+  :Nhận thông báo đáo hạn;
+  :Đăng nhập hệ thống;
+  :Xem chi tiết khoản vay;
+  
+  |Hệ thống|
+  :Hiển thị thông tin;
+  note right
+  - Số dư nợ gốc còn lại
+  - Ngày đáo hạn
+  - Tổng số tiền phải trả
+  - Lịch sử trả nợ
+  end note
+  
+  |Khách hàng|
+  if (Lựa chọn?) then (Trả hết nợ)
+    partition "Trả hết nợ gốc" {
+      :Chọn "Trả hết và kết thúc";
+      
+      |Hệ thống|
+      :Tính tổng số tiền cần trả;
+      note right
+      Total = outstanding_balance 
+            + unpaid_interest
+            + late_fee (if any)
+      end note
+      
+      :BEGIN TRANSACTION;
+      
+      if (Số dư TK đủ?) then (không)
+        :ROLLBACK;
+        |Khách hàng|
+        :Lỗi: Số dư không đủ;
+        :Yêu cầu nạp thêm tiền;
+        stop
+      else (có)
+        |Hệ thống|
+        :UPDATE Account balance (-);
+        :INSERT LoanPayment (final);
+        :UPDATE Loan status = 'PAID_OFF';
+        :UPDATE Loan outstanding_balance = 0;
+        
+        if (Có tài sản thế chấp?) then (có)
+          :UPDATE Collateral status = 'AVAILABLE';
+          :Gửi thông báo giải phóng tài sản;
+        endif
+        
+        :Cập nhật Credit Score (+10);
+        note right
+        Trả nợ đúng hạn
+        cải thiện điểm tín dụng
+        end note
+        
+        :COMMIT;
+        
+        |Khách hàng|
+        :Nhận biên lai hoàn tất;
+        :Nhận thông báo giải phóng tài sản;
+        stop
+      endif
+    }
+    
+  else (Gia hạn)
+    partition "Gia hạn Khoản vay" {
+      |Khách hàng|
+      :Chọn "Gia hạn khoản vay";
+      :Nhập thời gian gia hạn;
+      note right
+      Ví dụ: Gia hạn thêm 12 tháng
+      end note
+      
+      |Hệ thống|
+      :Tính toán khoản vay mới;
+      note right
+      - New maturity_date = OLD + extend_months
+      - Giữ nguyên lãi suất (hoặc điều chỉnh)
+      - Tính monthly payment mới
+      - Tạo lịch trả nợ mới
+      end note
+      
+      :Hiển thị preview gia hạn;
+      
+      |Khách hàng|
+      :Xem thông tin gia hạn;
+      :Xác nhận gia hạn;
+      
+      |Hệ thống|
+      :INSERT LoanRestructuring;
+      note right
+      - restructure_type = 'EXTENSION'
+      - old_maturity_date
+      - new_maturity_date
+      - status = 'PENDING'
+      end note
+      
+      :Gửi yêu cầu đến Loan Officer;
+      
+      |Nhân viên Tín dụng|
+      :Nhận yêu cầu gia hạn;
+      :Xem xét hồ sơ;
+      note right
+      Kiểm tra:
+      - Lịch sử trả nợ
+      - Credit score
+      - Thu nhập hiện tại
+      - Khả năng trả nợ
+      end note
+      
+      if (Phê duyệt?) then (Từ chối)
+        :UPDATE LoanRestructuring
+        status = 'REJECTED';
+        :Nhập lý do từ chối;
+        
+        |Khách hàng|
+        :Nhận thông báo từ chối;
+        :Phải trả hết nợ đúng hạn;
+        stop
+        
+      else (Phê duyệt)
+        |Nhân viên Tín dụng|
+        :Xác nhận phê duyệt;
+        
+        |Hệ thống|
+        :BEGIN TRANSACTION;
+        
+        :UPDATE Loans
+        SET maturity_date = new_date;
+        
+        :DELETE old LoanPaymentSchedule
+        WHERE payment_number > paid;
+        
+        :INSERT new LoanPaymentSchedule;
+        note right
+        Tạo lịch trả nợ mới
+        từ kỳ tiếp theo đến maturity mới
+        end note
+        
+        :UPDATE LoanRestructuring
+        status = 'APPROVED';
+        
+        :COMMIT;
+        
+        |Khách hàng|
+        :Nhận thông báo phê duyệt;
+        :Xem lịch trả nợ mới;
+        stop
+      endif
+    }
+    
+  else (Tái cấu trúc)
+    partition "Tái cấu trúc Khoản vay" {
+      |Khách hàng|
+      :Chọn "Tái cấu trúc";
+      :Chọn các tham số mới;
+      note right
+      Có thể thay đổi:
+      - Lãi suất (nếu điểm tín dụng tốt)
+      - Kỳ hạn (kéo dài/rút ngắn)
+      - Số tiền trả hàng tháng
+      end note
+      
+      |Hệ thống|
+      :Tính toán lại khoản vay;
+      :Hiển thị so sánh cũ/mới;
+      
+      |Khách hàng|
+      :Xác nhận tái cấu trúc;
+      
+      |Hệ thống|
+      :INSERT LoanRestructuring;
+      note right
+      - restructure_type = 'REFINANCE'
+      - Lưu tất cả thay đổi
+      - status = 'PENDING'
+      end note
+      
+      :Gửi yêu cầu đến Loan Officer;
+      
+      |Nhân viên Tín dụng|
+      :Xem xét và phê duyệt;
+      note right
+      Quy trình tương tự gia hạn
+      nhưng phức tạp hơn
+      end note
+      
+      if (Phê duyệt?) then (có)
+        |Hệ thống|
+        :Cập nhật Loan với các tham số mới;
+        :Tạo lại LoanPaymentSchedule;
+        :Gửi thông báo;
+        stop
+      else (không)
+        :Từ chối;
+        stop
+      endif
+    }
+  endif
+endif
+
+@enduml
+

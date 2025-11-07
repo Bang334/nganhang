@@ -1,0 +1,328 @@
+@startuml Package Diagram
+
+title Hệ thống Quản lý Ngân hàng - Package Diagram
+
+!define PACKAGE_COLOR #E8F5E9
+!define MODEL_COLOR #FFF3E0
+!define SERVICE_COLOR #E3F2FD
+!define CONTROLLER_COLOR #F3E5F5
+
+' ========================================
+' PRESENTATION LAYER
+' ========================================
+package "Presentation Layer" <<Frame>> {
+  
+  package "web.frontend" <<Folder>> CONTROLLER_COLOR {
+    [LoginPage]
+    [CustomerDashboard]
+    [TellerDashboard]
+    [LoanOfficerDashboard]
+    [AdminDashboard]
+  }
+  
+  package "web.components" <<Folder>> CONTROLLER_COLOR {
+    [AccountComponents]
+    [TransactionComponents]
+    [LoanComponents]
+    [SavingsComponents]
+    [AdminComponents]
+  }
+}
+
+' ========================================
+' API LAYER
+' ========================================
+package "API Layer" <<Frame>> {
+  
+  package "api.controllers" <<Folder>> CONTROLLER_COLOR {
+    [AuthController]
+    [CustomerController]
+    [AccountController]
+    [TransactionController]
+    [LoanController]
+    [SavingsController]
+    [AdminController]
+  }
+  
+  package "api.middleware" <<Folder>> {
+    [AuthMiddleware]
+    [ValidationMiddleware]
+    [ErrorHandler]
+  }
+}
+
+' ========================================
+' BUSINESS LOGIC LAYER
+' ========================================
+package "Business Logic Layer" <<Frame>> {
+  
+  package "services.account" <<Folder>> SERVICE_COLOR {
+    [AccountService]
+    [AccountTypeService]
+    [CardService]
+  }
+  
+  package "services.transaction" <<Folder>> SERVICE_COLOR {
+    [TransactionService]
+    [TransferService]
+    [DepositWithdrawService]
+  }
+  
+  package "services.savings" <<Folder>> SERVICE_COLOR {
+    [SavingsService]
+    [SavingsInterestService]
+    [MaturityService]
+  }
+  
+  package "services.loan" <<Folder>> SERVICE_COLOR {
+    [LoanService]
+    [LoanApprovalService]
+    [LoanDisbursementService]
+    [LoanPaymentService]
+    [CollateralService]
+  }
+  
+  package "services.customer" <<Folder>> SERVICE_COLOR {
+    [CustomerService]
+    [CreditScoreService]
+  }
+  
+  package "services.admin" <<Folder>> SERVICE_COLOR {
+    [EmployeeService]
+    [BranchService]
+    [ReportService]
+  }
+  
+  package "services.external" <<Folder>> SERVICE_COLOR {
+    [CICService]
+    [NAPASService]
+    [SMSService]
+    [EmailService]
+  }
+}
+
+' ========================================
+' DOMAIN LAYER
+' ========================================
+package "Domain Layer" <<Frame>> {
+  
+  package "models.customer" <<Folder>> MODEL_COLOR {
+    [Customer]
+    [CreditScore]
+  }
+  
+  package "models.account" <<Folder>> MODEL_COLOR {
+    [Account]
+    [AccountType]
+    [Card]
+  }
+  
+  package "models.transaction" <<Folder>> MODEL_COLOR {
+    [Transaction]
+    [TransactionType]
+  }
+  
+  package "models.savings" <<Folder>> MODEL_COLOR {
+    [SavingsDeposit]
+    [SavingsInterestRate]
+    [SavingsTransaction]
+  }
+  
+  package "models.loan" <<Folder>> MODEL_COLOR {
+    [Loan]
+    [LoanType]
+    [LoanInterestRate]
+    [LoanPaymentSchedule]
+    [LoanPayment]
+    [Collateral]
+    [CollateralType]
+  }
+  
+  package "models.organization" <<Folder>> MODEL_COLOR {
+    [Branch]
+    [Employee]
+    [Role]
+  }
+}
+
+' ========================================
+' DATA ACCESS LAYER
+' ========================================
+package "Data Access Layer" <<Frame>> {
+  
+  package "repositories" <<Folder>> {
+    [CustomerRepository]
+    [AccountRepository]
+    [TransactionRepository]
+    [LoanRepository]
+    [SavingsRepository]
+    [EmployeeRepository]
+  }
+  
+  package "database" <<Database>> {
+    database "MySQL" as DB
+    database "Redis Cache" as Cache
+  }
+}
+
+' ========================================
+' INFRASTRUCTURE
+' ========================================
+package "Infrastructure" <<Frame>> {
+  
+  package "utils" <<Folder>> {
+    [ValidationUtil]
+    [DateUtil]
+    [NumberUtil]
+    [EncryptionUtil]
+  }
+  
+  package "jobs" <<Folder>> {
+    [AutoDebitJob]
+    [MaturityCheckJob]
+    [OverdueCheckJob]
+    [CreditScoreUpdateJob]
+  }
+  
+  package "config" <<Folder>> {
+    [DatabaseConfig]
+    [APIConfig]
+    [SecurityConfig]
+  }
+}
+
+' ========================================
+' EXTERNAL SYSTEMS
+' ========================================
+package "External Systems" <<Cloud>> {
+  [NAPAS_Gateway]
+  [CIC_System]
+  [SMS_Gateway]
+  [Email_Service]
+}
+
+' ========================================
+' DEPENDENCIES
+' ========================================
+
+' Presentation -> API
+web.frontend --> api.controllers
+web.components --> api.controllers
+
+' API -> Middleware
+api.controllers ..> api.middleware
+
+' API -> Services
+AuthController --> CustomerService
+CustomerController --> AccountService
+CustomerController --> TransactionService
+AccountController --> AccountService
+TransactionController --> TransactionService
+TransactionController --> TransferService
+LoanController --> LoanService
+LoanController --> LoanApprovalService
+SavingsController --> SavingsService
+AdminController --> EmployeeService
+AdminController --> ReportService
+
+' Services -> Domain Models
+AccountService --> Account
+AccountService --> AccountType
+TransactionService --> Transaction
+LoanService --> Loan
+LoanService --> LoanType
+SavingsService --> SavingsDeposit
+CustomerService --> Customer
+CreditScoreService --> CreditScore
+
+' Services -> Repositories
+AccountService --> AccountRepository
+TransactionService --> TransactionRepository
+LoanService --> LoanRepository
+SavingsService --> SavingsRepository
+CustomerService --> CustomerRepository
+EmployeeService --> EmployeeRepository
+
+' Services -> External
+LoanApprovalService --> CICService
+TransactionService --> NAPASService
+AccountService --> SMSService
+LoanService --> EmailService
+
+' External Services -> External Systems
+CICService --> CIC_System
+NAPASService --> NAPAS_Gateway
+SMSService --> SMS_Gateway
+EmailService --> Email_Service
+
+' Repositories -> Database
+CustomerRepository --> DB
+AccountRepository --> DB
+TransactionRepository --> DB
+LoanRepository --> DB
+SavingsRepository --> DB
+EmployeeRepository --> DB
+
+AccountRepository ..> Cache
+CustomerRepository ..> Cache
+
+' Jobs -> Services
+AutoDebitJob --> LoanPaymentService
+MaturityCheckJob --> SavingsService
+OverdueCheckJob --> LoanService
+CreditScoreUpdateJob --> CreditScoreService
+
+' Utils usage (dotted)
+services.account ..> utils
+services.transaction ..> utils
+services.loan ..> utils
+services.savings ..> utils
+
+' Config usage
+database ..> config
+api.controllers ..> config
+
+' ========================================
+' NOTES
+' ========================================
+note right of "Presentation Layer"
+  - React/Vue.js frontend
+  - Component-based architecture
+  - State management: Redux/Vuex
+end note
+
+note right of "API Layer"
+  - RESTful API
+  - JWT Authentication
+  - Request validation
+  - Error handling
+end note
+
+note right of "Business Logic Layer"
+  - Core business rules
+  - Transaction management
+  - External integrations
+  - Service orchestration
+end note
+
+note right of "Domain Layer"
+  - Business entities
+  - Domain logic
+  - No dependencies on other layers
+end note
+
+note right of "Data Access Layer"
+  - Repository pattern
+  - ORM: Sequelize/TypeORM
+  - Caching strategy
+  - Connection pooling
+end note
+
+note right of "Infrastructure"
+  - Scheduled jobs (Cron)
+  - Utility functions
+  - Configuration management
+end note
+
+@enduml
+

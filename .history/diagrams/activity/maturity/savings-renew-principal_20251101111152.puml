@@ -1,0 +1,33 @@
+@startuml Tái Tục Gốc - Tiết Kiệm
+title Activity Diagram - Tái Tục Gốc, Nhận Lãi (Sổ Tiết Kiệm)
+
+|Hệ thống|
+start
+:Sổ tiết kiệm đã đáo hạn;
+
+|Khách hàng|
+:Chọn "Tái tục gốc, nhận lãi";
+:Chọn kỳ hạn mới;
+
+|Hệ thống|
+:Lấy lãi suất hiện tại;
+:Tính lãi dự kiến kỳ mới;
+:Hiển thị preview;
+
+|Khách hàng|
+:Xác nhận tái tục;
+
+|Hệ thống|
+:Chuyển lãi về tài khoản;
+:Ghi nhận giao dịch trả lãi;
+:Tạo sổ tiết kiệm mới (chỉ gốc);
+:Đóng sổ cũ;
+
+|Khách hàng|
+:Nhận lãi về tài khoản;
+:Nhận số sổ mới;
+
+stop
+
+@enduml
+

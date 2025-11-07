@@ -1,0 +1,139 @@
+@startuml Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Hệ thống Ngân hàng - Class Diagram
+
+' Core Classes
+class Customer {
+    - customer_id: int
+    - customer_code: string
+    - full_name: string
+    - email: string
+    - phone: string
+    - username: string
+    - status: string
+    + login()
+    + viewAccounts()
+    + createSavings()
+    + applyLoan()
+}
+
+class Employee {
+    - employee_id: int
+    - employee_code: string
+    - full_name: string
+    - email: string
+    - role: Role
+    - branch: Branch
+    + login()
+    + processTransaction()
+}
+
+class Account {
+    - account_id: int
+    - account_number: string
+    - balance: decimal
+    - account_type: AccountType
+    - status: string
+    + deposit(amount)
+    + withdraw(amount)
+    + transfer(toAccount, amount)
+    + getBalance()
+}
+
+class Transaction {
+    - transaction_id: bigint
+    - transaction_code: string
+    - from_account: Account
+    - to_account: Account
+    - amount: decimal
+    - status: string
+    - transaction_date: datetime
+    + process()
+    + validate()
+}
+
+class SavingsDeposit {
+    - deposit_id: int
+    - deposit_number: string
+    - principal_amount: decimal
+    - interest_rate: decimal
+    - term_months: int
+    - maturity_date: date
+    - status: string
+    + calculateInterest()
+    + withdraw()
+    + renew()
+}
+
+class Loan {
+    - loan_id: int
+    - loan_number: string
+    - loan_amount: decimal
+    - interest_rate: decimal
+    - term_months: int
+    - outstanding_balance: decimal
+    - status: string
+    + apply()
+    + approve()
+    + disburse()
+    + makePayment(amount)
+}
+
+class Collateral {
+    - collateral_id: int
+    - collateral_name: string
+    - appraised_value: decimal
+    - status: string
+    + appraise()
+    + verify()
+}
+
+class CreditScore {
+    - score_id: int
+    - score: int
+    - grade: string
+    - calculated_at: datetime
+    + calculate()
+    + updateScore()
+}
+
+class Branch {
+    - branch_id: int
+    - branch_code: string
+    - branch_name: string
+    - address: string
+    + getEmployees()
+    + getCustomers()
+}
+
+class Card {
+    - card_id: int
+    - card_number: string
+    - card_type: string
+    - expiry_date: date
+    - status: string
+    + activate()
+    + block()
+}
+
+' Relationships
+Customer "1" -- "*" Account : owns
+Customer "1" -- "*" SavingsDeposit : has
+Customer "1" -- "*" Loan : borrows
+Customer "1" -- "*" Collateral : owns
+Customer "1" -- "1" CreditScore : has
+
+Account "1" -- "*" Transaction : from/to
+Account "1" -- "*" Card : has
+
+Loan "*" -- "1" Employee : processed by
+Loan "1" -- "0..1" Collateral : secured by
+
+Employee "*" -- "1" Branch : works at
+Customer "*" -- "1" Branch : registered at
+Account "*" -- "1" Branch : opened at
+
+@enduml
+

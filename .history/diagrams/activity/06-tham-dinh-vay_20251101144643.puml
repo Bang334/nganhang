@@ -1,0 +1,92 @@
+@startuml Thẩm định và Phê duyệt Vay
+title Activity Diagram - Thẩm định Khoản Vay
+
+||Nhân viên Tín dụng|
+start
+:Đăng nhập;
+:Chọn hồ sơ chờ duyệt;
+
+partition "Bước 1: Đánh giá tín dụng" {
+  :Nhập thông tin đánh giá;
+  note right
+  - Thu nhập hàng tháng
+  - Tỷ lệ nợ/thu nhập
+  - Lịch sử tín dụng
+  end note
+  
+  |Hệ thống|
+  :Tính điểm tín dụng (Credit Score);
+  :Xếp hạng khách hàng (AAA → D);
+  :Tính lãi suất theo hạng;
+}
+
+if (Có tài sản thế chấp?) then (có)
+  partition "Bước 2: Thẩm định tài sản" {
+    |Nhân viên Tín dụng|
+    :Kiểm tra giấy tờ;
+    :Thẩm định giá trị thực tế;
+    :Nhập giá trị thẩm định;
+    
+    |Hệ thống|
+    :Tính LTV ratio;
+    :So sánh với Max LTV;
+    
+    if (LTV hợp lệ?) then (không)
+      |Hệ thống|
+      :TỰ ĐỘNG TỪ CHỐI khoản vay;
+      :Cập nhật trạng thái (Từ chối);
+      :Giải phóng tài sản thế chấp;
+      
+      |Nhân viên Tín dụng|
+      :Nhận thông báo từ chối tự động;
+      note right
+      LTV vượt quá giới hạn
+      → Không đủ điều kiện
+      end note
+      
+      |Hệ thống|
+      :Gửi thông báo khách hàng;
+      stop
+    else (có)
+      |Hệ thống|
+      :Cập nhật thông tin tài sản thế chấp;
+      note right
+      LTV hợp lệ
+      → Tiếp tục thẩm định
+      end note
+    endif
+  }
+endif
+
+partition "Bước 3: Quyết định cuối cùng" {
+  |Nhân viên Tín dụng|
+  if (Quyết định?) then (Phê duyệt)
+    :Nhập thông tin phê duyệt;
+    note right
+    - Số tiền duyệt
+    - Lãi suất
+    - Thời hạn
+    end note
+    
+    |Hệ thống|
+    :Cập nhật thông tin khoản vay;
+    :Tạo lịch trả nợ hàng tháng;
+    :Gửi thông báo phê duyệt;
+    
+  else (Từ chối)
+    :Nhập lý do từ chối;
+    
+    |Hệ thống|
+    :Cập nhật trạng thái khoản vay (Từ chối);
+    
+    if (Có thế chấp?) then (có)
+      :Giải phóng tài sản thế chấp;
+    endif
+    
+    :Gửi thông báo từ chối;
+  endif
+}
+
+stop
+
+@enduml

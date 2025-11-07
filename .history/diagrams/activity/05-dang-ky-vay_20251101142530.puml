@@ -1,0 +1,83 @@
+@startuml Đăng ký Vay
+title Activity Diagram - Đăng ký Khoản Vay
+
+|Khách hàng|
+start
+:Đăng nhập;
+:Chọn "Đăng ký vay";
+
+|Hệ thống|
+:Load loại hình vay;
+:Load lãi suất cho vay;
+
+|Khách hàng|
+:Nhập thông tin vay;
+note right
+- Số tiền vay
+- Kỳ hạn (tháng)
+- Mục đích vay
+end note
+
+|Hệ thống|
+:Tính lãi suất dự kiến;
+:Tính khoản trả hàng tháng;
+note right
+Monthly Payment = 
+P × [r(1+r)^n] / [(1+r)^n - 1]
+end note
+
+if (Vay có thế chấp?) then (có)
+  |Khách hàng|
+  if (Tài sản đã có?) then (có)
+    :Chọn tài sản từ danh sách;
+  else (chưa)
+    :Đăng ký tài sản mới;
+    note right
+    - Loại tài sản
+    - Giá trị ước tính
+    - Giấy tờ chứng nhận
+    end note
+    
+    |Hệ thống|
+    :Tạo hồ sơ tài sản thế chấp (trạng thái: Chờ duyệt);
+  endif
+  
+  :Tính LTV ratio;
+  note right
+  LTV = (Loan Amount / Collateral Value) × 100%
+  end note
+  
+  if (LTV <= Max LTV?) then (không)
+    |Khách hàng|
+    :Cảnh báo LTV vượt mức;
+    :Yêu cầu giảm số tiền vay
+    hoặc tăng giá trị tài sản;
+    stop
+  endif
+endif
+
+|Khách hàng|
+:Xem thông tin tóm tắt;
+:Xác nhận đăng ký;
+
+|Hệ thống|
+:Tạo hồ sơ vay (trạng thái: Chờ duyệt);
+
+if (Có thế chấp?) then (có)
+  :Đánh dấu tài sản thế chấp đang sử dụng;
+endif
+
+:Lưu thông tin hồ sơ vay;
+
+|Khách hàng|
+:Nhận mã hồ sơ vay;
+:Thông báo chờ duyệt;
+note right
+Hồ sơ sẽ được
+nhân viên tín dụng
+thẩm định trong 3-5 ngày
+end note
+stop
+
+@enduml
+

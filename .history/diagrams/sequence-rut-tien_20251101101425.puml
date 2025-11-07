@@ -1,0 +1,104 @@
+@startuml Rút tiền
+
+title Nghiệp vụ: Rút tiền tại quầy giao dịch
+
+actor Customer
+actor Teller
+participant UI
+participant TransactionController
+participant AccountService
+participant TransactionService
+participant DB
+participant SMS
+
+== Xác thực ==
+Customer -> Teller: Yêu cầu rút tiền\n+ CMND
+Teller -> UI: Nhập số tài khoản
+UI -> TransactionController: getAccountInfo(accountNumber)
+TransactionController -> AccountService: findByAccountNumber(accountNumber)
+AccountService -> DB: SELECT * FROM account\nWHERE account_number = ?
+
+alt Tài khoản tồn tại
+  DB --> AccountService: Account data
+  AccountService --> TransactionController: Account object
+  TransactionController --> UI: Display account
+  UI --> Teller: Hiển thị:\n- Họ tên: Nguyễn Văn A\n- Số dư khả dụng: 80,000,000\n- Trạng thái: ACTIVE
+  
+  Teller -> Teller: Kiểm tra CMND\nkhớp với hồ sơ
+  
+else Tài khoản không tồn tại
+  DB --> AccountService: NULL
+  AccountService --> TransactionController: Not found
+  TransactionController --> UI: Error
+  UI --> Teller: "Số tài khoản\nkhông tồn tại"
+end
+
+== Kiểm tra điều kiện rút ==
+Teller -> UI: Nhập số tiền rút:\n20,000,000
+UI -> TransactionController: validateWithdrawal(\n  accountId, amount)
+
+TransactionController -> AccountService: checkAvailableBalance(\n  accountId, amount)
+AccountService -> DB: SELECT balance, status\nFROM account\nWHERE account_id = ?
+DB --> AccountService: balance=80M, status=ACTIVE
+
+AccountService -> AccountService: Check conditions:\n1. status = ACTIVE ✓\n2. balance >= amount ✓\n   (80M >= 20M)
+
+alt Status OK và Balance đủ
+  AccountService --> TransactionController: Valid
+  
+  TransactionController -> TransactionController: Check daily limit
+  TransactionController -> DB: SELECT SUM(amount)\nFROM transaction\nWHERE account_id = ?\n  AND type = 'WITHDRAW'\n  AND DATE(created_at) = TODAY
+  DB --> TransactionController: today_withdrawn = 10M
+  
+  TransactionController -> TransactionController: Calculate:\ntotal = 10M + 20M = 30M\nlimit = 50M\n30M <= 50M ✓
+  
+  TransactionController --> UI: Valid
+  UI --> Teller: OK, có thể rút
+  
+else Status != ACTIVE hoặc Balance < amount
+  AccountService --> TransactionController: Invalid
+  TransactionController --> UI: Error
+  UI --> Teller: "Không thể rút tiền:\n- TK bị khóa hoặc\n- Số dư không đủ"
+end
+
+== Thực hiện rút tiền ==
+Teller -> UI: Xác nhận rút tiền
+UI -> TransactionController: processWithdrawal(\n  accountId, amount, tellerId)
+
+TransactionController -> TransactionService: withdraw(\n  accountId, amount, tellerId)
+TransactionService -> DB: BEGIN TRANSACTION
+
+TransactionService -> DB: SELECT balance FROM account\nWHERE account_id = ?\nFOR UPDATE
+DB --> TransactionService: balance = 80M
+
+TransactionService -> DB: UPDATE account\nSET balance = balance - 20,000,000
+DB --> TransactionService: Rows affected: 1
+
+TransactionService -> TransactionService: Generate transaction_code
+TransactionService -> DB: INSERT INTO transaction\n(account_id, type='WITHDRAW',\n amount=20M, fee=0,\n status='SUCCESS',\n processed_by=tellerId)
+DB --> TransactionService: transaction_id
+
+TransactionService -> DB: COMMIT
+DB --> TransactionService: Success
+
+TransactionService --> TransactionController: Transaction completed
+TransactionController --> UI: Success
+UI --> Teller: In biên lai
+
+== Hoàn tất ==
+Teller -> Teller: Đưa tiền mặt\ncho khách hàng
+
+TransactionController -> SMS: sendSMS(phone,\n  "TK xxx rút 20,000,000.\n   Số dư: 60,000,000")
+SMS --> TransactionController: SMS sent
+
+Teller -> Customer: Giao tiền mặt\n+ Biên lai
+
+note right of DB
+  Row-level locking (FOR UPDATE):
+  - Ngăn 2 giao dịch rút cùng lúc
+  - Đảm bảo số dư chính xác
+  - Tránh race condition
+end note
+
+@enduml
+

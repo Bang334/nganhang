@@ -1,0 +1,44 @@
+@startuml Tái Cấu Trúc Khoản Vay
+title Activity Diagram - Tái Cấu Trúc Khoản Vay Khi Đáo Hạn
+
+|Hệ thống|
+start
+:Khoản vay sắp đáo hạn;
+
+|Khách hàng|
+:Chọn "Tái cấu trúc";
+:Chọn tham số mới;
+note right
+  Có thể thay đổi:
+  - Lãi suất
+  - Kỳ hạn
+  - Số tiền trả hàng tháng
+end note
+
+|Hệ thống|
+:Tính toán lại khoản vay;
+:Hiển thị so sánh cũ/mới;
+
+|Khách hàng|
+:Xác nhận tái cấu trúc;
+
+|Hệ thống|
+:Tạo yêu cầu tái cấu trúc;
+:Gửi đến Nhân viên Tín dụng;
+
+|Nhân viên Tín dụng|
+:Xem xét và phê duyệt;
+
+if (Phê duyệt?) then (có)
+  |Hệ thống|
+  :Cập nhật thông tin khoản vay;
+  :Tạo lại lịch trả nợ;
+  :Gửi thông báo;
+  stop
+else (không)
+  :Từ chối yêu cầu;
+  stop
+endif
+
+@enduml
+

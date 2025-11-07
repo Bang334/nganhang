@@ -1,0 +1,157 @@
+@startuml Xử lý Nợ Quá Hạn
+title Activity Diagram - Xử lý Nợ Quá Hạn
+
+|Hệ thống (Scheduled Job)|
+start
+:Chạy job hàng ngày
+(Daily Cron Job);
+note right
+Chạy vào 00:00 mỗi ngày
+end note
+
+:Tìm các kỳ trả nợ quá hạn;
+note right
+Tìm các kỳ trả nợ:
+- Trạng thái: Chờ trả
+- Ngày đáo hạn < Hôm nay
+end note
+
+if (Có kỳ quá hạn?) then (không)
+  :Không có việc gì;
+  stop
+else (có)
+  :Duyệt từng kỳ quá hạn;
+  
+  repeat
+    :Tính số ngày quá hạn;
+    note right
+    days_overdue = TODAY - due_date
+    end note
+    
+    :Tính phí trễ hạn;
+    note right
+    Late Fee Calculation:
+    - 1-7 ngày: 0.5% / ngày
+    - 8-30 ngày: 1% / ngày
+    - 31-90 ngày: 2% / ngày
+    - > 90 ngày: 3% / ngày
+    
+    late_fee = outstanding × rate × days
+    end note
+    
+    if (Số ngày quá hạn?) then (1-7 ngày)
+      partition "Mức 1: Nhắc nhở" {
+        :UPDATE status = 'OVERDUE';
+        :Gửi SMS nhắc nhở;
+        :Gửi Email nhắc nhở;
+        :Gửi thông báo app;
+        note right
+        Nội dung nhẹ nhàng:
+        "Kỳ trả nợ đã đến hạn,
+        vui lòng thanh toán"
+        end note
+      }
+      
+    elseif (8-30 ngày) then
+      partition "Mức 2: Cảnh báo" {
+        :Tính và cập nhật phí trễ;
+        :Gửi thông báo cảnh báo;
+        :Gọi điện nhắc nhở;
+        note right
+        "Tài khoản quá hạn X ngày,
+        phí trễ hạn: Y VND"
+        end note
+        
+        :Cập nhật Credit Score (-5);
+        note right
+        Giảm nhẹ điểm tín dụng
+        end note
+      }
+      
+    elseif (31-90 ngày) then
+      partition "Mức 3: Nghiêm trọng" {
+        :Tính phí trễ tích lũy;
+        :Gửi cảnh báo nghiêm trọng;
+        :Liên hệ trực tiếp;
+        
+        |Nhân viên Tín dụng|
+        :Nhận thông báo nợ xấu;
+        :Liên hệ khách hàng;
+        :Lên kế hoạch thu hồi nợ;
+        
+        |Hệ thống|
+        :Cập nhật Credit Score (-20);
+        note right
+        Giảm mạnh điểm tín dụng
+        end note
+        
+        :Khóa các tính năng vay mới;
+        note right
+        Không cho phép vay thêm
+        cho đến khi trả nợ
+        end note
+      }
+      
+    else (> 90 ngày)
+      partition "Mức 4: Xử lý pháp lý" {
+        :UPDATE Loan status = 'BAD_DEBT';
+        :Tạo hồ sơ nợ xấu;
+        
+        |Nhân viên Tín dụng|
+        :Đánh giá tình hình;
+        
+        if (Có tài sản thế chấp?) then (có)
+          :Khởi tạo thủ tục thu hồi;
+          note right
+          Quy trình:
+          1. Thông báo thu hồi tài sản
+          2. Định giá lại tài sản
+          3. Bán đấu giá
+          4. Thu hồi công nợ
+          end note
+          
+          :Gửi thông báo thu hồi tài sản;
+          :Chuẩn bị hồ sơ pháp lý;
+          
+        else (không)
+          :Chuyển sang công ty thu hồi nợ;
+          note right
+          Debt Collection Agency
+          end note
+          
+          :Báo cáo CIC (Credit Bureau);
+          note right
+          Đưa vào danh sách đen
+          CIC - Center for Information Credit
+          end note
+        endif
+        
+        |Hệ thống|
+        :Cập nhật Credit Score = MIN;
+        note right
+        Điểm tín dụng xuống mức D
+        Blacklist trong 5 năm
+        end note
+        
+        :Khóa toàn bộ tính năng vay;
+        :Gửi thông báo pháp lý;
+      }
+    endif
+    
+    :Lưu log xử lý;
+    
+  repeat while (Còn kỳ quá hạn?) is (có) not (hết)
+  
+  :Tạo báo cáo nợ quá hạn;
+  note right
+  Báo cáo gửi cho:
+  - Ban giám đốc
+  - Bộ phận tín dụng
+  - Bộ phận rủi ro
+  end note
+  
+  stop
+endif
+
+@enduml
+

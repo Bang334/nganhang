@@ -1,0 +1,112 @@
+@startuml Đáo hạn Tiết kiệm
+title Activity Diagram - Đáo hạn Sổ Tiết kiệm (Savings Maturity)
+
+|Hệ thống|
+start
+:Kiểm tra sổ tiết kiệm sắp đáo hạn
+(7 ngày trước);
+:Gửi thông báo cho khách hàng;
+:Đến ngày đáo hạn;
+:Cập nhật trạng thái sổ = 'Đã đáo hạn';
+
+|Khách hàng|
+:Nhận thông báo;
+:Đăng nhập xem chi tiết sổ;
+
+|Hệ thống|
+:Hiển thị thông tin đáo hạn;
+note right
+  - Số tiền gốc
+  - Lãi đã tích lũy
+  - Tổng tiền nhận
+  - Các tùy chọn xử lý
+end note
+
+|Khách hàng|
+if (Có tự động tái tục?) then (có)
+  partition "Tự động tái tục" {
+    |Hệ thống|
+    :Xử lý theo thiết lập trước;
+    
+    if (Loại tái tục?) then (Tái tục GỐC)
+      :Tính lãi;
+      :Chuyển lãi về tài khoản;
+      :Ghi nhận giao dịch trả lãi;
+      :Tạo sổ tiết kiệm mới (chỉ gốc);
+      :Đóng sổ cũ;
+      
+    else (Tái tục GỐC + LÃI)
+      :Tính tổng gốc + lãi;
+      :Tạo sổ tiết kiệm mới (gốc + lãi);
+      :Đóng sổ cũ;
+    endif
+    
+    |Khách hàng|
+    :Nhận thông báo tái tục;
+    :Nhận số sổ mới;
+    stop
+  }
+  
+else (không)
+  |Khách hàng|
+  :Chọn cách xử lý;
+  
+  if (Lựa chọn?) then (Rút tiền)
+    partition "Rút về tài khoản" {
+      |Hệ thống|
+      :Tính tổng tiền (gốc + lãi);
+      :Cộng tiền vào tài khoản;
+      :Ghi nhận giao dịch;
+      :Đóng sổ tiết kiệm;
+      
+      |Khách hàng|
+      :Nhận tiền và biên lai;
+      stop
+    }
+    
+  elseif (Tái tục GỐC) then
+    partition "Tái tục gốc - Nhận lãi" {
+      |Khách hàng|
+      :Chọn kỳ hạn mới;
+      
+      |Hệ thống|
+      :Chuyển lãi về tài khoản;
+      :Tạo sổ tiết kiệm mới (chỉ gốc);
+      :Đóng sổ cũ;
+      
+      |Khách hàng|
+      :Nhận lãi và số sổ mới;
+      stop
+    }
+    
+  elseif (Tái tục GỐC + LÃI) then
+    partition "Tái tục gốc + lãi" {
+      :Chọn "Tái tục gốc + lãi";
+      :Chọn kỳ hạn mới;
+      
+      |Hệ thống|
+      :Tính tổng gốc + lãi;
+      :Tính lãi kép dự kiến;
+      note right
+        Lãi kép mạnh hơn!
+        Gốc mới = Gốc cũ + Lãi
+      end note
+      
+      :Hiển thị so sánh lợi ích;
+      
+      |Khách hàng|
+      :Xác nhận tái tục;
+      
+      |Hệ thống|
+      :Tạo sổ tiết kiệm mới (gốc + lãi);
+      :Đóng sổ cũ;
+      
+      |Khách hàng|
+      :Nhận số sổ mới với gốc lớn hơn;
+      stop
+    }
+  endif
+endif
+
+@enduml
+

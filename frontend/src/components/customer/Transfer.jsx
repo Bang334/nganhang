@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
-import { getCustomerAccounts, formatCurrency, currentUser } from '../../data/mockData';
+import { getCustomerAccounts, formatCurrency, currentUser, banks } from '../../data/mockData';
 
 const Transfer = ({ user }) => {
   // Lấy accounts của customer hiện tại
@@ -9,10 +9,13 @@ const Transfer = ({ user }) => {
   
   const [formData, setFormData] = useState({
     fromAccount: accounts[0]?.account_number || '',
+    toBank: 'ABC',
     toAccount: '',
     amount: '',
     description: '',
   });
+
+  const isInternalTransfer = formData.toBank === 'ABC';
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -58,6 +61,25 @@ const Transfer = ({ user }) => {
                 </div>
               </div>
             )}
+
+            <div className="form-group">
+              <label>Ngân hàng nhận</label>
+              <select
+                className="input"
+                value={formData.toBank}
+                onChange={(e) => setFormData({ ...formData, toBank: e.target.value })}
+                required
+              >
+                {banks.map((bank) => (
+                  <option key={bank} value={bank}>
+                    {bank}
+                  </option>
+                ))}
+              </select>
+              <small className="text-secondary" style={{ display: 'block', marginTop: '0.25rem', fontSize: '0.75rem' }}>
+                {isInternalTransfer ? '✅ Chuyển khoản nội bộ - Miễn phí' : '⚠️ Chuyển khoản liên ngân hàng - Có phí 5,000 VND'}
+              </small>
+            </div>
 
             <div className="form-group">
               <label>Số tài khoản nhận</label>

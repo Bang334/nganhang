@@ -1,0 +1,155 @@
+@startuml Đáo hạn Khoản Vay
+title Activity Diagram - Đáo hạn Khoản Vay (Loan Maturity)
+
+|Hệ thống|
+start
+:Kiểm tra khoản vay sắp đáo hạn
+(30 ngày trước);
+:Gửi thông báo cho khách hàng;
+
+|Khách hàng|
+:Nhận thông báo;
+:Đăng nhập xem chi tiết khoản vay;
+
+|Hệ thống|
+:Hiển thị thông tin;
+note right
+  - Dư nợ gốc còn lại
+  - Ngày đáo hạn
+  - Tổng tiền phải trả
+  - Lịch sử trả nợ
+end note
+
+|Khách hàng|
+if (Lựa chọn?) then (Trả hết nợ)
+  partition "Trả hết nợ gốc" {
+    :Chọn "Trả hết và kết thúc";
+    
+    |Hệ thống|
+    :Tính tổng tiền cần trả;
+    note right
+      Gồm: dư nợ gốc + lãi + phí trễ hạn
+    end note
+    
+    if (Số dư tài khoản đủ?) then (không)
+      |Khách hàng|
+      :Thông báo số dư không đủ;
+      :Yêu cầu nạp thêm tiền;
+      stop
+    else (có)
+      |Hệ thống|
+      :Trừ tiền tài khoản;
+      :Ghi nhận thanh toán cuối cùng;
+      :Cập nhật trạng thái khoản vay = 'Đã thanh toán';
+      :Cập nhật dư nợ = 0;
+      
+      if (Có tài sản thế chấp?) then (có)
+        :Giải phóng tài sản thế chấp;
+        :Gửi thông báo giải phóng;
+      endif
+      
+      :Cải thiện điểm tín dụng;
+      
+      |Khách hàng|
+      :Nhận biên lai hoàn tất;
+      stop
+    endif
+  }
+  
+else (Gia hạn)
+  partition "Gia hạn khoản vay" {
+    |Khách hàng|
+    :Chọn "Gia hạn";
+    :Nhập thời gian gia hạn thêm;
+    
+    |Hệ thống|
+    :Tính toán khoản vay mới;
+    note right
+      - Ngày đáo hạn mới
+      - Lãi suất mới (nếu có)
+      - Khoản trả hàng tháng mới
+    end note
+    
+    :Hiển thị preview gia hạn;
+    
+    |Khách hàng|
+    :Xác nhận gia hạn;
+    
+    |Hệ thống|
+    :Tạo yêu cầu gia hạn;
+    :Gửi đến Nhân viên Tín dụng;
+    
+    |Nhân viên Tín dụng|
+    :Xem xét hồ sơ;
+    note right
+      Kiểm tra:
+      - Lịch sử trả nợ
+      - Điểm tín dụng
+      - Thu nhập
+      - Khả năng trả nợ
+    end note
+    
+    if (Phê duyệt?) then (Từ chối)
+      :Cập nhật yêu cầu = 'Từ chối';
+      :Nhập lý do;
+      
+      |Khách hàng|
+      :Nhận thông báo từ chối;
+      :Phải trả hết nợ đúng hạn;
+      stop
+      
+    else (Phê duyệt)
+      |Hệ thống|
+      :Cập nhật ngày đáo hạn mới;
+      :Xóa lịch trả nợ cũ (các kỳ chưa trả);
+      :Tạo lịch trả nợ mới;
+      :Cập nhật yêu cầu = 'Đã duyệt';
+      
+      |Khách hàng|
+      :Nhận thông báo phê duyệt;
+      :Xem lịch trả nợ mới;
+      stop
+    endif
+  }
+  
+else (Tái cấu trúc)
+  partition "Tái cấu trúc khoản vay" {
+    |Khách hàng|
+    :Chọn "Tái cấu trúc";
+    :Chọn tham số mới;
+    note right
+      Có thể thay đổi:
+      - Lãi suất
+      - Kỳ hạn
+      - Số tiền trả hàng tháng
+    end note
+    
+    |Hệ thống|
+    :Tính toán lại khoản vay;
+    :Hiển thị so sánh cũ/mới;
+    
+    |Khách hàng|
+    :Xác nhận tái cấu trúc;
+    
+    |Hệ thống|
+    :Tạo yêu cầu tái cấu trúc;
+    :Gửi đến Nhân viên Tín dụng;
+    
+    |Nhân viên Tín dụng|
+    :Xem xét và phê duyệt;
+    
+    if (Phê duyệt?) then (có)
+      |Hệ thống|
+      :Cập nhật thông tin khoản vay;
+      :Tạo lại lịch trả nợ;
+      :Gửi thông báo;
+      stop
+    else (không)
+      :Từ chối yêu cầu;
+      stop
+    endif
+  }
+endif
+
+@enduml
+

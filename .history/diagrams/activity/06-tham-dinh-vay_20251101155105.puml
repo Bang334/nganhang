@@ -1,0 +1,114 @@
+@startuml Thẩm định và Phê duyệt Vay
+title Activity Diagram - Thẩm định Khoản Vay
+
+|Nhân viên Tín dụng|
+start
+:Đăng nhập;
+:Chọn hồ sơ chờ duyệt;
+
+|Hệ thống|
+:Hiển thị thông tin hồ sơ;
+:Lấy điểm tín dụng hiện tại;
+:Hiển thị điểm tín dụng và hạng;
+:Hiển thị thông tin khách hàng;
+:Hiển thị thông tin khoản vay;
+:Hiển thị tài sản thế chấp (nếu có);
+
+|Nhân viên Tín dụng|
+:Xem xét hồ sơ;
+
+partition "Kiểm tra loại vay" {
+  |Hệ thống|
+  
+  if (Có tài sản thế chấp?) then (có)
+    |Nhân viên Tín dụng|
+    :Kiểm tra giấy tờ tài sản;
+    :Thẩm định giá trị;
+    :Nhập giá trị thẩm định;
+    
+    |Hệ thống|
+    :Tính LTV = (Số tiền vay / Giá trị tài sản) × 100;
+    
+    if (LTV <= 70%?) then (không)
+      :TỰ ĐỘNG TỪ CHỐI;
+      :Giải phóng tài sản;
+      :Gửi thông báo từ chối;
+      stop
+    else (có)
+      :LTV hợp lệ → Tiếp tục;
+    endif
+    
+  else (không)
+    |Hệ thống|
+    :Kiểm tra Credit Score >= 700?;
+    
+    if (Không đủ?) then (không)
+      :TỰ ĐỘNG TỪ CHỐI;
+      :Gửi thông báo từ chối;
+      stop
+    endif
+    
+    :Kiểm tra Thu nhập >= 15 triệu/tháng?;
+    
+    if (Không đủ?) then (không)
+      :TỰ ĐỘNG TỪ CHỐI;
+      :Gửi thông báo từ chối;
+      stop
+    endif
+    
+    :Kiểm tra Tỷ lệ nợ <= 40%?;
+    
+    if (Không đủ?) then (không)
+      :TỰ ĐỘNG TỪ CHỐI;
+      :Gửi thông báo từ chối;
+      stop
+    endif
+    
+    :Kiểm tra Số tiền <= 200 triệu?;
+    
+    if (Không đủ?) then (không)
+      :TỰ ĐỘNG TỪ CHỐI;
+      :Gửi thông báo từ chối;
+      stop
+    endif
+    
+    :Đủ điều kiện → Tiếp tục;
+  endif
+}
+
+partition "Quyết định" {
+  |Nhân viên Tín dụng|
+  
+  if (Quyết định?) then (Phê duyệt)
+    :Nhập số tiền duyệt;
+    :Nhập lãi suất;
+    :Nhập thời hạn;
+    
+    |Hệ thống|
+    :Cập nhật thông tin khoản vay;
+    :Tạo lịch trả nợ;
+    
+    if (Khoản vay đầu tiên?) then (có)
+      :Tăng điểm tín dụng +5;
+      :Lưu vào CreditScoreHistory;
+    endif
+    
+    :Gửi thông báo phê duyệt;
+    
+  else (Từ chối)
+    :Nhập lý do từ chối;
+    
+    |Hệ thống|
+    :Cập nhật trạng thái (Từ chối);
+    
+    if (Có thế chấp?) then (có)
+      :Giải phóng tài sản;
+    endif
+    
+    :Gửi thông báo từ chối;
+  endif
+}
+
+stop
+
+@enduml

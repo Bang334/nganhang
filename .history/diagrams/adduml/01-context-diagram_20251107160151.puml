@@ -1,0 +1,81 @@
+@startuml Context Diagram
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title Hệ thống Quản lý Ngân hàng - Context Diagram
+
+' External Entities
+actor "Khách hàng\n(Customer)" as Customer
+actor "Nhân viên Ngân hàng\n(Bank Staff)" as Staff
+actor "Hệ thống Thanh toán\n(Payment Gateway)" as PaymentGateway
+actor "CIC\n(Credit Bureau)" as CIC
+actor "SMS Gateway" as SMSGateway
+actor "Email Service" as EmailService
+
+' Main System
+rectangle "Hệ thống Quản lý Ngân hàng\n(Banking Management System)" as BankingSystem {
+    component "Frontend\n(React)" as Frontend
+    component "Backend API\n(Spring Boot/Node.js)" as Backend
+    component "Database\n(MySQL)" as Database
+    component "Authentication\nService" as AuthService
+    component "Transaction\nService" as TransactionService
+    component "Loan\nService" as LoanService
+    component "Savings\nService" as SavingsService
+}
+
+' Relationships - Customer
+Customer --> Frontend : "Sử dụng dịch vụ\n(Web/Mobile)"
+Frontend --> Backend : "API Requests"
+
+' Relationships - Staff
+Staff --> Frontend : "Quản lý hệ thống"
+Frontend --> Backend : "API Requests"
+
+' Relationships - External Systems
+Backend --> PaymentGateway : "Thanh toán\nliên ngân hàng"
+Backend --> CIC : "Truy vấn\nlịch sử tín dụng"
+Backend --> SMSGateway : "Gửi OTP\nvà thông báo"
+Backend --> EmailService : "Gửi email\nxác nhận"
+
+' Relationships - Central Bank
+CentralBank --> Backend : "Báo cáo\ntuân thủ"
+
+' Internal Relationships
+Backend --> AuthService : "Xác thực"
+Backend --> TransactionService : "Xử lý\ngiao dịch"
+Backend --> LoanService : "Quản lý\nkhoản vay"
+Backend --> SavingsService : "Quản lý\ntiết kiệm"
+Backend --> Database : "Lưu trữ\ndữ liệu"
+
+AuthService --> Database
+TransactionService --> Database
+LoanService --> Database
+SavingsService --> Database
+
+note right of BankingSystem
+  **Hệ thống chính:**
+  - Quản lý tài khoản
+  - Xử lý giao dịch
+  - Quản lý tiết kiệm
+  - Quản lý khoản vay
+  - Báo cáo và thống kê
+end note
+
+note right of Customer
+  **Khách hàng:**
+  - Đăng ký tài khoản
+  - Thực hiện giao dịch
+  - Quản lý tiết kiệm
+  - Đăng ký vay vốn
+end note
+
+note right of Staff
+  **Nhân viên:**
+  - Giao dịch viên (Teller)
+  - Nhân viên tín dụng
+  - Quản trị viên
+end note
+
+@enduml
+

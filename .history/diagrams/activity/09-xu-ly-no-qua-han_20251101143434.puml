@@ -1,0 +1,83 @@
+@startuml Xử lý Nợ Quá Hạn
+title Activity Diagram - Xử lý Nợ Quá Hạn
+
+||Hệ thống (Scheduled Job)|
+start
+:Chạy job hàng ngày (00:00);
+:Tìm các kỳ trả nợ quá hạn;
+
+if (Có kỳ quá hạn?) then (không)
+  :Không có việc gì;
+  stop
+else (có)
+  :Duyệt từng kỳ quá hạn;
+  
+  repeat
+    :Tính số ngày quá hạn;
+    :Tính phí trễ hạn;
+    
+    if (Số ngày quá hạn?) then (1-7 ngày)
+      partition "Mức 1: Nhắc nhở" {
+        :Cập nhật trạng thái kỳ trả nợ (Quá hạn);
+        :Gửi SMS nhắc nhở;
+        :Gửi Email nhắc nhở;
+        :Gửi thông báo app;
+      }
+      
+    elseif (8-30 ngày) then
+      partition "Mức 2: Cảnh báo" {
+        :Tính và cập nhật phí trễ;
+        :Gửi thông báo cảnh báo;
+        :Gọi điện nhắc nhở;
+        :Giảm điểm tín dụng (-5);
+      }
+      
+    elseif (31-90 ngày) then
+      partition "Mức 3: Nghiêm trọng" {
+        :Tính phí trễ tích lũy;
+        :Gửi cảnh báo nghiêm trọng;
+        
+        |Nhân viên Tín dụng|
+        :Nhận thông báo nợ xấu;
+        :Liên hệ khách hàng;
+        :Lên kế hoạch thu hồi nợ;
+        
+        |Hệ thống|
+        :Giảm mạnh điểm tín dụng (-20);
+        :Khóa các tính năng vay mới;
+      }
+      
+    else (> 90 ngày)
+      partition "Mức 4: Xử lý pháp lý" {
+        :Cập nhật trạng thái khoản vay (Nợ xấu);
+        :Tạo hồ sơ nợ xấu;
+        
+        |Nhân viên Tín dụng|
+        :Đánh giá tình hình;
+        
+        if (Có tài sản thế chấp?) then (có)
+          :Khởi tạo thủ tục thu hồi;
+          :Gửi thông báo thu hồi tài sản;
+          :Chuẩn bị hồ sơ pháp lý;
+          
+        else (không)
+          :Chuyển sang công ty thu hồi nợ;
+          :Báo cáo CIC (Credit Bureau);
+        endif
+        
+        |Hệ thống|
+        :Hạ điểm tín dụng xuống mức thấp nhất;
+        :Khóa toàn bộ tính năng vay;
+        :Gửi thông báo pháp lý;
+      }
+    endif
+    
+    :Lưu log xử lý;
+    
+  repeat while (Còn kỳ quá hạn?) is (có) not (hết)
+  
+  :Tạo báo cáo nợ quá hạn;
+  stop
+endif
+
+@enduml

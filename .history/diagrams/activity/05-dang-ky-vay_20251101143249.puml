@@ -1,0 +1,60 @@
+@startuml Đăng ký Vay
+title Activity Diagram - Đăng ký Khoản Vay
+
+||Khách hàng|
+start
+:Đăng nhập;
+:Chọn "Đăng ký vay";
+:Nhập thông tin vay;
+note right
+- Loại hình vay (Mua nhà, xe, tiêu dùng,...)
+- Số tiền vay
+- Thời hạn (tháng)
+- Mục đích vay
+- Thu nhập hàng tháng
+end note
+
+if (Vay có thế chấp?) then (có)
+  |Khách hàng|
+  if (Có tài sản đã được duyệt?) then (có)
+    :Chọn tài sản từ danh sách;
+  else (chưa)
+    :Nhập thông tin tài sản thế chấp;
+    note right
+    - Loại tài sản
+    - Tên/Mô tả
+    - Địa chỉ/Vị trí
+    - Giá trị ước tính
+    - Số giấy chứng nhận
+    end note
+  endif
+  
+  |Khách hàng|
+  :Tính LTV (Loan-to-Value);
+  
+  |Hệ thống|
+  if (LTV <= Mức cho phép?) then (không)
+    |Khách hàng|
+    :Cảnh báo LTV vượt quá;
+    stop
+  endif
+endif
+
+||Khách hàng|
+:Xác nhận đăng ký;
+
+||Hệ thống|
+:Tạo hồ sơ vay (trạng thái: Chờ duyệt);
+
+if (Có thế chấp?) then (có)
+  :Đánh dấu tài sản đang sử dụng;
+endif
+
+:Lưu thông tin hồ sơ;
+
+||Khách hàng|
+:Nhận mã hồ sơ vay;
+:Thông báo chờ thẩm định (2-5 ngày);
+stop
+
+@enduml
