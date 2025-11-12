@@ -421,9 +421,8 @@ const ApprovedLoans = () => {
                     <th style={{padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#374151'}}>Khách hàng</th>
                     <th style={{padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#374151'}}>Loại vay</th>
                     <th style={{padding: '1rem', textAlign: 'right', fontWeight: 600, color: '#374151'}}>Số tiền</th>
-                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Điểm TS</th>
-                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>LTV</th>
                     <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Lãi suất</th>
+                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Kỳ hạn</th>
                     <th style={{padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#374151'}}>Ngày duyệt</th>
                     <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Trạng thái</th>
                     <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Hành động</th>
@@ -447,41 +446,6 @@ const ApprovedLoans = () => {
                       <td style={{padding: '1rem', textAlign: 'right', fontWeight: 700, color: '#1f2937'}}>
                         {formatCurrency(loan.loanAmount)}
                       </td>
-                      <td style={{padding: '1rem', textAlign: 'center'}}>
-                        <span 
-                          className="badge"
-                          style={{
-                            background: loan.creditScore >= 700 ? '#10b981' : 
-                                       loan.creditScore >= 600 ? '#f59e0b' : '#ef4444',
-                            color: 'white',
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '9999px',
-                            fontSize: '0.75rem',
-                            fontWeight: 600
-                          }}
-                        >
-                          {loan.creditScore}
-                        </span>
-                      </td>
-                      <td style={{padding: '1rem', textAlign: 'center'}}>
-                        {loan.ltvRatio > 0 ? (
-                          <span 
-                            className="badge"
-                            style={{
-                              background: loan.ltvRatio > 70 ? '#dc2626' : '#10b981',
-                              color: 'white',
-                              padding: '0.25rem 0.75rem',
-                              borderRadius: '9999px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600
-                            }}
-                          >
-                            {loan.ltvRatio}%
-                          </span>
-                        ) : (
-                          <span style={{color: '#9ca3af', fontSize: '0.875rem'}}>N/A</span>
-                        )}
-                      </td>
                       <td style={{padding: '1rem', textAlign: 'center', color: '#374151'}}>
                         <span style={{
                           background: '#dbeafe',
@@ -494,12 +458,13 @@ const ApprovedLoans = () => {
                           {loan.interestRate}%
                         </span>
                       </td>
+                      <td style={{padding: '1rem', textAlign: 'center', color: '#374151'}}>{loan.term} tháng</td>
                       <td style={{padding: '1rem', color: '#374151', fontSize: '0.875rem'}}>{loan.approvedDate}</td>
                       <td style={{padding: '1rem', textAlign: 'center'}}>
                         <span 
                           className="badge"
                           style={{
-                            background: loan.disbursementStatus === 'Đã giải ngân' ? '#10b981' : '#f59e0b',
+                            background: loan.status === 'Đã giải ngân' ? '#10b981' : '#f59e0b',
                             color: 'white',
                             padding: '0.25rem 0.75rem',
                             borderRadius: '9999px',
@@ -507,7 +472,7 @@ const ApprovedLoans = () => {
                             fontWeight: 600
                           }}
                         >
-                          {loan.disbursementStatus}
+                          {loan.status}
                         </span>
                       </td>
                       <td style={{padding: '1rem', textAlign: 'center'}}>
