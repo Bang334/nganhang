@@ -1,0 +1,44 @@
+@startuml Loan State Diagram
+title State Diagram - Khoản Vay (Loans)
+
+[*] --> PENDING : Khách hàng đăng ký
+
+PENDING --> APPROVED : Nhân viên phê duyệt
+PENDING --> REJECTED : Nhân viên từ chối
+
+APPROVED --> DISBURSED : Giải ngân tiền vay
+
+DISBURSED --> ACTIVE : Bắt đầu trả nợ
+
+ACTIVE --> ACTIVE : Trả nợ hàng tháng
+ACTIVE --> OVERDUE : Quá hạn trả nợ
+ACTIVE --> PAID_OFF : Trả hết nợ
+
+OVERDUE --> ACTIVE : Trả nợ quá hạn
+OVERDUE --> PAID_OFF : Trả hết nợ
+
+PAID_OFF --> [*] : Kết thúc
+
+REJECTED --> [*] : Kết thúc
+
+note right of PENDING
+  **Trạng thái ban đầu:**
+  - Khách hàng nộp hồ sơ
+  - Chờ thẩm định
+end note
+
+note right of ACTIVE
+  **Trạng thái hoạt động:**
+  - Đang trả nợ định kỳ
+  - Có thể trả trước
+  - Có thể quá hạn
+end note
+
+note right of PAID_OFF
+  **Kết thúc thành công:**
+  - Giải phóng tài sản (nếu có)
+  - Tăng điểm tín dụng
+end note
+
+@enduml
+

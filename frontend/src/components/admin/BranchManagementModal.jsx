@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Building2, Users, MapPin, Phone, Mail, Plus, Edit, Trash2 } from 'lucide-react';
 import Modal from '../common/Modal';
-import { branches, employees, formatCurrency } from '../../data/mockData';
+import { getBranchesWithDetails, employees, formatCurrency, roles } from '../../data/mockData';
 
 const BranchManagementModal = ({ isOpen, onClose, type = 'LIST' }) => {
   const [currentBranch, setCurrentBranch] = useState(null);
+  const branches = getBranchesWithDetails() || [];
   const [formData, setFormData] = useState({
     branchCode: '',
     branchName: '',
@@ -130,11 +131,11 @@ const BranchManagementModal = ({ isOpen, onClose, type = 'LIST' }) => {
                 <div className="branch-stats">
                   <div className="stat">
                     <Users size={16} />
-                    <span>{branch.customerCount} KH</span>
+                    <span>{branch.customerCount || 0} KH</span>
                   </div>
                   <div className="stat">
                     <span className="text-success font-semibold">
-                      {formatCurrency(branch.totalDeposits)}
+                      {branch.employeeCount || 0} NV
                     </span>
                   </div>
                 </div>
@@ -217,9 +218,12 @@ const BranchManagementModal = ({ isOpen, onClose, type = 'LIST' }) => {
                 onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
               >
                 <option value="">Chọn giám đốc</option>
-                {employees.filter(emp => emp.role === 'BRANCH_MANAGER').map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.fullName}
+                {employees.filter(emp => {
+                  const role = roles.find(r => r.role_id === emp.role_id);
+                  return role?.role_name === 'ADMIN';
+                }).map((emp) => (
+                  <option key={emp.employee_id} value={emp.employee_id}>
+                    {emp.full_name}
                   </option>
                 ))}
               </select>
@@ -307,9 +311,12 @@ const BranchManagementModal = ({ isOpen, onClose, type = 'LIST' }) => {
                 onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
               >
                 <option value="">Chọn giám đốc</option>
-                {employees.filter(emp => emp.role === 'BRANCH_MANAGER').map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.fullName}
+                {employees.filter(emp => {
+                  const role = roles.find(r => r.role_id === emp.role_id);
+                  return role?.role_name === 'ADMIN';
+                }).map((emp) => (
+                  <option key={emp.employee_id} value={emp.employee_id}>
+                    {emp.full_name}
                   </option>
                 ))}
               </select>

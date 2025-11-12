@@ -1,0 +1,61 @@
+@startuml Deployment Diagram
+!theme plain
+title Sơ đồ Triển khai - Hệ thống Quản lý Ngân hàng
+
+node ClientBrowser as "Client Browser" {
+  artifact "React App" as ReactApp
+}
+
+node WebServer as "Web Server" {
+  component "Nginx/Apache\n(Static Files)" as Nginx
+  artifact "HTML/CSS/JS" as StaticFiles
+}
+
+node AppServer as "Application Server" {
+  component "Node.js\nAPI Server" as NodeAPI
+  note right
+    - Express Framework
+    - RESTful API
+    - Business Logic
+  end note
+}
+
+database DatabaseServer as "Database Server" {
+  component "MySQL 8.0" as MySQL
+  storage "Tables" as Tables
+  note right
+    - Customers, Accounts
+    - Transactions, Loans
+    - Savings, Credit Scores
+  end note
+}
+
+' Connections
+ClientBrowser --> Nginx : HTTPS Request
+Nginx --> StaticFiles : Serve Files
+ReactApp --> NodeAPI : API Calls (REST)
+NodeAPI --> MySQL : SQL Queries
+MySQL --> Tables : CRUD
+
+note bottom of WebServer
+  **Web Server:**
+  - Port: 80/443
+  - Serves React build
+  - Static hosting
+end note
+
+note bottom of AppServer
+  **App Server:**
+  - Port: 3000/5000
+  - Node.js Runtime
+  - API Endpoints
+end note
+
+note bottom of DatabaseServer
+  **Database:**
+  - Port: 3306
+  - InnoDB Engine
+  - UTF8MB4 Charset
+end note
+
+@enduml

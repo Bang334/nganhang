@@ -8,10 +8,10 @@ participant "System" as System
 database "Database" as DB
 
 Customer -> App: Chọn "Gửi tiết kiệm"
-App -> System: Load lãi suất tiết kiệm
+App -> System: Yêu cầu bảng lãi suất tiết kiệm
 
-System -> DB: SELECT * FROM SavingsInterestRates\nWHERE status = 'ACTIVE'
-DB --> System: Danh sách lãi suất
+System -> DB: Lấy danh sách lãi suất đang áp dụng
+DB --> System: Trả về danh sách lãi suất
 
 System --> App: Hiển thị các kỳ hạn\nvà lãi suất
 
@@ -20,29 +20,29 @@ App -> System: Tính lãi dự kiến
 System --> App: Số tiền lãi dự kiến
 
 Customer -> App: Xác nhận mở sổ
-App -> System: Create SavingsDeposit
+App -> System: Gửi yêu cầu mở sổ tiết kiệm
 
-System -> DB: BEGIN TRANSACTION
+System -> DB: Bắt đầu ghi nhận giao dịch
 
-System -> DB: SELECT balance FROM Accounts\nWHERE account_id = customer_account
-DB --> System: Current balance
+System -> DB: Kiểm tra số dư tài khoản nguồn
+DB --> System: Số dư hiện tại
 
 alt Số dư đủ (min 1M)
-    System -> DB: UPDATE Accounts\nSET balance = balance - principal_amount
-    DB --> System: OK
+    System -> DB: Trừ tiền khỏi tài khoản nguồn
+    DB --> System: Xác nhận cập nhật
     
-    System -> DB: INSERT SavingsDeposits\n(principal, rate, term, maturity_date)
-    DB --> System: deposit_id
+    System -> DB: Lưu thông tin sổ tiết kiệm mới
+    DB --> System: Ghi nhận mã sổ tiết kiệm
     
-    System -> DB: INSERT SavingsTransactions\n(type = 'INITIAL_DEPOSIT')
-    DB --> System: OK
+    System -> DB: Ghi nhận giao dịch gửi tiết kiệm
+    DB --> System: Xác nhận lưu giao dịch
     
-    System -> DB: COMMIT
+    System -> DB: Hoàn tất ghi nhận
     
     System --> App: Mở sổ thành công\n(Số sổ tiết kiệm)
     App --> Customer: Hiển thị thông tin sổ\nvà lãi dự kiến
 else Số dư không đủ
-    System -> DB: ROLLBACK
+    System -> DB: Hủy ghi nhận
     System --> App: Lỗi: Số dư không đủ
     App --> Customer: Thông báo lỗi
 end

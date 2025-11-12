@@ -23,27 +23,27 @@ alt Account người nhận tồn tại
     Customer -> App: Xác nhận chuyển khoản
     App -> System: Execute Transfer
     
-    System -> DB: BEGIN TRANSACTION
+    System -> DB: Bắt đầu ghi nhận giao dịch chuyển khoản
     
-    System -> DB: SELECT balance FROM Accounts\nWHERE account_id = from_account\nFOR UPDATE
-    DB --> System: Current balance
+    System -> DB: Khóa và kiểm tra số dư tài khoản nguồn
+    DB --> System: Số dư hiện tại
     
     alt Số dư đủ
-        System -> DB: UPDATE Accounts\nSET balance = balance - amount\nWHERE account_id = from_account
-        DB --> System: OK
+        System -> DB: Trừ số tiền khỏi tài khoản nguồn
+        DB --> System: Xác nhận cập nhật
         
-        System -> DB: UPDATE Accounts\nSET balance = balance + amount\nWHERE account_id = to_account
-        DB --> System: OK
+        System -> DB: Cộng tiền vào tài khoản nhận
+        DB --> System: Xác nhận cập nhật
         
-        System -> DB: INSERT Transaction\n(type = TRANSFER)
-        DB --> System: transaction_id
+        System -> DB: Ghi nhận giao dịch chuyển khoản
+        DB --> System: Trả về mã giao dịch
         
-        System -> DB: COMMIT
+        System -> DB: Hoàn tất ghi nhận giao dịch
         
         System --> App: Chuyển khoản thành công
         App --> Customer: Hiển thị biên lai
     else Số dư không đủ
-        System -> DB: ROLLBACK
+        System -> DB: Hủy ghi nhận giao dịch
         System --> App: Lỗi: Số dư không đủ
         App --> Customer: Thông báo lỗi
     end

@@ -238,7 +238,7 @@ TABLE(Loans) {
     disbursement_date : DATE
     first_payment_date : DATE
     maturity_date : DATE
-    status : ENUM('PENDING','APPROVED','REJECTED','DISBURSED','ACTIVE','PAID_OFF','OVERDUE')
+    status : ENUM('PENDING','APPROVED','REJECTED','ACTIVE','PAID_OFF','OVERDUE')
     created_at : TIMESTAMP
 }
 

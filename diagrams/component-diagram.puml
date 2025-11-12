@@ -1,0 +1,139 @@
+@startuml Component Diagram
+!theme plain
+title Sơ đồ Thành phần - Hệ thống Quản lý Ngân hàng
+
+skinparam componentStyle rectangle
+
+package "Client Layer" {
+  [Web Browser] as Browser
+  
+  package "React Application" {
+    component [Customer Portal] as CustomerUI
+    component [Teller Portal] as TellerUI
+    component [Loan Officer Portal] as LoanOfficerUI
+    component [Admin Portal] as AdminUI
+    
+    component [Authentication] as Auth
+    component [State Management\n(Redux/Context)] as State
+    component [API Client] as APIClient
+  }
+}
+
+package "API Layer" {
+  [API Gateway] as Gateway
+  
+  package "REST API Services" {
+    component [Auth Service] as AuthAPI
+    component [Account Service] as AccountAPI
+    component [Transaction Service] as TransactionAPI
+    component [Loan Service] as LoanAPI
+    component [Savings Service] as SavingsAPI
+    component [Credit Score Service] as CreditAPI
+  }
+}
+
+package "Business Logic Layer" {
+  component [Account Manager] as AccountMgr
+  component [Transaction Processor] as TxProcessor
+  component [Loan Manager] as LoanMgr
+  component [Credit Score Calculator] as CreditCalc
+  component [Interest Calculator] as InterestCalc
+  component [Payment Scheduler] as Scheduler
+}
+
+package "Data Layer" {
+  database "MySQL Database" {
+    [Customers DB]
+    [Accounts DB]
+    [Transactions DB]
+    [Loans DB]
+    [Savings DB]
+    [Credit Scores DB]
+  }
+  
+  [Cache Server\n(Redis)] as Cache
+  [File Storage\n(Documents)] as Storage
+}
+
+package "External Services" {
+  [Email Service] as Email
+  [SMS Gateway] as SMS
+  [Payment Gateway\n(VNPay/MoMo)] as Payment
+  [Credit Bureau\n(CIC)] as CIC
+}
+
+' Connections - Client to API
+Browser --> Auth
+Browser --> CustomerUI
+Browser --> TellerUI
+Browser --> LoanOfficerUI
+Browser --> AdminUI
+
+CustomerUI --> APIClient
+TellerUI --> APIClient
+LoanOfficerUI --> APIClient
+AdminUI --> APIClient
+Auth --> APIClient
+
+APIClient --> Gateway
+
+' Connections - API to Services
+Gateway --> AuthAPI
+Gateway --> AccountAPI
+Gateway --> TransactionAPI
+Gateway --> LoanAPI
+Gateway --> SavingsAPI
+Gateway --> CreditAPI
+
+' Connections - Services to Business Logic
+AccountAPI --> AccountMgr
+TransactionAPI --> TxProcessor
+LoanAPI --> LoanMgr
+SavingsAPI --> InterestCalc
+CreditAPI --> CreditCalc
+
+LoanMgr --> Scheduler
+LoanMgr --> CreditCalc
+
+' Connections - Business Logic to Data
+AccountMgr --> [Accounts DB]
+AccountMgr --> Cache
+TxProcessor --> [Transactions DB]
+TxProcessor --> Cache
+LoanMgr --> [Loans DB]
+CreditCalc --> [Credit Scores DB]
+InterestCalc --> [Savings DB]
+
+' Connections - External Services
+AuthAPI --> Email
+LoanMgr --> Email
+LoanMgr --> SMS
+TxProcessor --> Payment
+CreditCalc --> CIC
+LoanMgr --> Storage
+
+note right of Browser
+  **Client Access Points:**
+  - Customer: Mobile/Web
+  - Staff: Desktop Web
+  - Admin: Secure Portal
+end note
+
+note bottom of Gateway
+  **API Gateway Features:**
+  - Authentication/Authorization
+  - Rate Limiting
+  - Request Routing
+  - Load Balancing
+end note
+
+note bottom of Cache
+  **Caching Strategy:**
+  - Session Data
+  - Account Balances
+  - Interest Rates
+  - User Profiles
+end note
+
+@enduml
+

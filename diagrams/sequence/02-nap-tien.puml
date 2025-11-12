@@ -17,15 +17,15 @@ alt Account tồn tại và ACTIVE
     Teller -> System: Xác nhận số tiền
     System -> System: Validate amount
     
-    System -> DB: BEGIN TRANSACTION
+    System -> DB: Bắt đầu ghi nhận giao dịch
     
-    System -> DB: UPDATE Account\nSET balance = balance + amount
-    DB --> System: OK
+    System -> DB: Cộng số dư tài khoản
+    DB --> System: Xác nhận cập nhật
     
-    System -> DB: INSERT Transaction\n(type = DEPOSIT)
-    DB --> System: transaction_id
+    System -> DB: Lưu giao dịch nạp tiền
+    DB --> System: Trả về mã giao dịch
     
-    System -> DB: COMMIT
+    System -> DB: Hoàn tất ghi nhận
     
     System --> Teller: Nạp tiền thành công\n(Biên lai)
     Teller --> Customer: Giao biên lai\nvà tiền thừa (nếu có)

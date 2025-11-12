@@ -1,0 +1,174 @@
+@startuml Deployment Diagram
+!theme plain
+title Sơ đồ Triển khai - Hệ thống Quản lý Ngân hàng
+
+skinparam nodeStyle rectangle
+
+node ClientDevices as "Client Devices" {
+  artifact "Web Browser" as Browser
+  artifact "Mobile App" as Mobile
+}
+
+node CDN as "CDN / Static Hosting" {
+  component "React App\n(Build Files)" as ReactApp
+  component "Static Assets\n(Images, CSS, JS)" as Assets
+}
+
+node LB as "Load Balancer" {
+  component "Nginx\n(Reverse Proxy)" as Nginx
+}
+
+node AppServer1 as "Application Server 1" {
+  component "Node.js\nAPI Server" as API1
+  component "PM2\n(Process Manager)" as PM2_1
+}
+
+node AppServer2 as "Application Server 2" {
+  component "Node.js\nAPI Server" as API2
+  component "PM2\n(Process Manager)" as PM2_2
+}
+
+node AppServer3 as "Application Server 3" {
+  component "Node.js\nAPI Server" as API3
+  component "PM2\n(Process Manager)" as PM2_3
+}
+
+database DBPrimary as "Database Server (Primary)" {
+  component "MySQL 8.0\n(Master)" as MySQL_Master
+  storage "InnoDB\nData Files" as DataFiles1
+}
+
+database DBReplica as "Database Server (Replica)" {
+  component "MySQL 8.0\n(Slave)" as MySQL_Slave
+  storage "InnoDB\nData Files\n(Read Only)" as DataFiles2
+}
+
+node CacheServer as "Cache Server" {
+  component "Redis\n(Session & Cache)" as Redis
+  storage "Memory" as RedisMemory
+}
+
+node JobScheduler as "Job Scheduler" {
+  component "Node-Cron\n(Background Jobs)" as Cron
+  note right
+    - Daily overdue check
+    - Interest calculation
+    - Maturity notifications
+    - Report generation
+  end note
+}
+
+node FileStorage as "File Storage" {
+  storage "Document Storage\n(AWS S3 / Local)" as FileSystem
+  note right
+    - Customer documents
+    - Loan agreements
+    - ID cards
+    - Transaction receipts
+  end note
+}
+
+cloud ExternalServices as "External Services" {
+  component "Email Service\n(SMTP/SendGrid)" as EmailService
+  component "SMS Gateway\n(Twilio/Esms)" as SMSService
+  component "Payment Gateway\n(VNPay/MoMo)" as PaymentService
+  component "Credit Bureau\n(CIC API)" as CICService
+}
+
+node MonitoringLogs as "Monitoring & Logging" {
+  component "PM2 Logs" as Logs
+  component "Application Monitoring\n(Optional: New Relic)" as Monitor
+}
+
+' Client Connections
+Browser --> ReactApp : HTTPS
+Mobile --> ReactApp : HTTPS
+ReactApp --> Nginx : API Calls (HTTPS)
+
+' Load Balancer Distribution
+Nginx --> API1 : Route
+Nginx --> API2 : Route
+Nginx --> API3 : Route
+
+' Application to Database
+API1 --> MySQL_Master : Write
+API1 --> MySQL_Slave : Read
+API2 --> MySQL_Master : Write
+API2 --> MySQL_Slave : Read
+API3 --> MySQL_Master : Write
+API3 --> MySQL_Slave : Read
+
+' Database Replication
+MySQL_Master --> MySQL_Slave : Replication
+
+' Application to Cache
+API1 --> Redis
+API2 --> Redis
+API3 --> Redis
+
+' Application to Storage
+API1 --> FileSystem
+API2 --> FileSystem
+API3 --> FileSystem
+
+' Background Jobs
+Cron --> MySQL_Master : Scheduled Tasks
+Cron --> EmailService
+Cron --> SMSService
+
+' External Service Connections
+API1 --> EmailService
+API1 --> SMSService
+API1 --> PaymentService
+API1 --> CICService
+
+API2 --> EmailService
+API2 --> SMSService
+API2 --> PaymentService
+API2 --> CICService
+
+API3 --> EmailService
+API3 --> SMSService
+API3 --> PaymentService
+API3 --> CICService
+
+' Monitoring
+API1 --> Logs
+API2 --> Logs
+API3 --> Logs
+Logs --> Monitor
+
+note top of LB
+  **Network Configuration:**
+  - HTTPS/SSL (Port 443)
+  - HTTP → HTTPS Redirect
+  - Rate Limiting
+  - DDoS Protection
+end note
+
+note bottom of "Database Server (Primary)"
+  **Database Configuration:**
+  - Master-Slave Replication
+  - Automated Backups (Daily)
+  - Point-in-time Recovery
+  - High Availability
+end note
+
+note right of "Application Server 1"
+  **Server Specs:**
+  - CPU: 4 vCPUs
+  - RAM: 8 GB
+  - Disk: 100 GB SSD
+  - OS: Ubuntu 22.04 LTS
+end note
+
+note bottom of Redis
+  **Cache Strategy:**
+  - Session Storage (TTL: 30min)
+  - Account Balances (TTL: 5min)
+  - Interest Rates (TTL: 1 day)
+  - User Profiles (TTL: 1 hour)
+end note
+
+@enduml
+

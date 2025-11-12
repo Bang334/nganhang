@@ -1,0 +1,42 @@
+@startuml Nạp/Rút Tiền
+title Activity Diagram - Nạp/Rút Tiền tại Quầy
+
+|Khách hàng|
+start
+:Yêu cầu nạp/rút tiền;
+:Cung cấp số TK và tiền mặt;
+
+|Giao dịch viên|
+:Nhập thông tin giao dịch;
+
+|Hệ thống|
+if (Tài khoản tồn tại?) then (có)
+  if (Loại giao dịch?) then (Nạp)
+    :Cộng tiền vào tài khoản;
+    :Ghi nhận giao dịch;
+    :In biên lai;
+    
+  else (Rút)
+    if (50K <= Số tiền <= 5M?) then (có)
+      if (Số dư đủ?) then (có)
+        :Trừ tiền từ tài khoản;
+        :Ghi nhận giao dịch;
+        :In biên lai;
+      else (không)
+        :Số dư không đủ;
+        stop
+      endif
+    else (không)
+      :Hạn mức không hợp lệ;
+      stop
+    endif
+  endif
+  
+  |Khách hàng|
+  :Nhận biên lai;
+else (không)
+  :Tài khoản không tồn tại;
+endif
+stop
+
+@enduml

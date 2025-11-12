@@ -1,0 +1,27 @@
+@startuml Account State Diagram
+title State Diagram - Tài Khoản (Accounts)
+
+[*] --> ACTIVE : Mở tài khoản
+
+ACTIVE --> ACTIVE : Giao dịch bình thường\n(Nạp, Rút, Chuyển khoản)
+
+ACTIVE --> CLOSED : Khách hàng đóng tài khoản
+
+CLOSED --> [*] : Kết thúc
+
+note right of ACTIVE
+  **Tài khoản hoạt động:**
+  - Có thể giao dịch
+  - Có số dư
+  - Có thể có thẻ
+end note
+
+note right of CLOSED
+  **Tài khoản đóng:**
+  - Không thể giao dịch
+  - Số dư = 0
+  - Lưu lịch sử
+end note
+
+@enduml
+

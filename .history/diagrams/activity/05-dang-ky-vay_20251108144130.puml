@@ -1,0 +1,94 @@
+@startuml Đăng ký Vay
+title Activity Diagram - Đăng ký Khoản Vay
+
+|Khách hàng|
+start
+:Đăng nhập;
+:Chọn "Đăng ký vay";
+:Nhập thông tin vay;
+note right
+- Loại hình vay (Mua nhà, xe, tiêu dùng,...)
+- Số tiền vay
+- Thời hạn (tháng)
+- Mục đích vay
+- Thu nhập hàng tháng
+end note
+
+|Hệ thống|
+if (Vay có thế chấp?) then (có)
+  |Khách hàng|
+  if (Có tài sản đã được duyệt?) then (có)
+    :Chọn tài sản từ danh sách;
+  else (chưa)
+    :Nhập thông tin tài sản thế chấp;
+    note right
+    - Loại tài sản
+    - Tên/Mô tả
+    - Địa chỉ/Vị trí
+    - Giá trị ước tính
+    - Số giấy chứng nhận
+    end note
+  endif
+  
+  |Khách hàng|
+  :Tính LTV (Loan-to-Value);
+  
+  |Hệ thống|
+  if (LTV <= Mức cho phép?) then (không)
+    |Khách hàng|
+    :Cảnh báo LTV vượt quá;
+    stop
+  endif
+  
+else (không)
+  partition "Kiểm tra điều kiện sơ bộ (Vay không thế chấp)" {
+    :Kiểm tra điều kiện tối thiểu;
+    note right
+    ✅ Số tiền vay <= 200 triệu
+    ✅ Thu nhập >= 15 triệu/tháng
+    ✅ Số tiền <= 10 lần thu nhập
+    end note
+    
+    if (Đủ điều kiện sơ bộ?) then (không)
+      |Khách hàng|
+      :Hiển thị cảnh báo không đủ điều kiện;
+      note right
+      ❌ Vượt quá giới hạn vay tín chấp
+      💡 Gợi ý: Vay có thế chấp
+      end note
+      :Có thể tiếp tục nộp hồ sơ;
+      note right
+      (Hồ sơ sẽ bị từ chối
+      khi thẩm định)
+      end note
+    else (có)
+      :Hiển thị thông báo đủ điều kiện sơ bộ;
+      note right
+      ✅ Đủ điều kiện sơ bộ
+      📋 Cần thẩm định thêm:
+      - Điểm tín dụng (>= 700)
+      - Lịch sử tín dụng
+      - Tỷ lệ nợ (<= 40%)
+      end note
+    endif
+  }
+endif
+
+|Khách hàng|
+:Xác nhận đăng ký;
+
+|Hệ thống|
+:Tạo hồ sơ vay (trạng thái: Chờ duyệt);
+
+if (Có thế chấp?) then (có)
+  :Đánh dấu tài sản đang sử dụng;
+endif
+
+:Lưu thông tin hồ sơ;
+
+|Khách hàng|
+:Nhận mã hồ sơ vay;
+:Thông báo chờ thẩm định (2-5 ngày);
+stop
+
+@enduml

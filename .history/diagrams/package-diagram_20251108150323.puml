@@ -1,0 +1,60 @@
+@startuml Package Diagram
+!theme plain
+title Sơ đồ Gói - Hệ thống Quản lý Ngân hàng
+
+package Frontend as "Frontend Application" {
+  package Pages {
+    [CustomerDashboard]
+    [TellerDashboard]
+    [LoanOfficerDashboard]
+    [AdminDashboard]
+    [LoginPage]
+  }
+  
+  package Components {
+    [customer/*\n15 components]
+    [teller/*\n8 components]
+    [loanOfficer/*\n10 components]
+    [admin/*\n5 components]
+    [common/*\n2 components]
+  }
+  
+  package Data {
+    [mockData.js]
+  }
+  
+  package Styles {
+    [CSS Files]
+  }
+}
+
+package Backend as "Backend (Future)" {
+  [API Server\n(Node.js)]
+  [Database\n(MySQL)]
+}
+
+' Dependencies
+Pages --> Components : uses
+Components --> Data : reads
+[CustomerDashboard] --> [customer/*\n15 components]
+[TellerDashboard] --> [teller/*\n8 components]
+[LoanOfficerDashboard] --> [loanOfficer/*\n10 components]
+[AdminDashboard] --> [admin/*\n5 components]
+
+Frontend ..> Backend : Future integration
+
+note right of Frontend
+  **Current Status:**
+  - Pure Frontend (React)
+  - Mock Data
+  - No API calls yet
+end note
+
+note right of Backend
+  **Future Development:**
+  - RESTful API
+  - MySQL Database
+  - Authentication
+end note
+
+@enduml

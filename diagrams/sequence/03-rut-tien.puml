@@ -14,26 +14,15 @@ System -> DB: Tìm Account
 DB --> System: Account info
 
 alt Account hợp lệ
-    System -> System: Kiểm tra số dư\nvà hạn mức (min 50K, max 5M)
+    System -> System: Kiểm tra số dư\n(min 50K) và hạn mức ngày (50M)
     
-    alt Số dư đủ
+    alt Thỏa điều kiện
         Teller -> System: Xác nhận rút tiền
-        
-        System -> DB: BEGIN TRANSACTION
-        
-        System -> DB: UPDATE Account\nSET balance = balance - amount
-        DB --> System: OK
-        
-        System -> DB: INSERT Transaction\n(type = WITHDRAW)
-        DB --> System: transaction_id
-        
-        System -> DB: COMMIT
-        
-        System --> Teller: Rút tiền thành công\n(Biên lai)
-        Teller --> Customer: Giao tiền mặt\nvà biên lai
-    else Số dư không đủ
-        System --> Teller: Lỗi: Số dư không đủ
-        Teller --> Customer: Thông báo không đủ tiền
+        System --> Teller: Hiển thị biên lai mô phỏng
+        Teller --> Customer: Trao tiền mặt\nvà biên lai
+    else Vi phạm điều kiện
+        System --> Teller: Lỗi (Số dư hoặc hạn mức)
+        Teller --> Customer: Thông báo lỗi
     end
 else Account không hợp lệ
     System --> Teller: Lỗi: Tài khoản không hợp lệ

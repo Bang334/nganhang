@@ -7,302 +7,107 @@ title Hệ thống Ngân hàng - Class Diagram (Đầy đủ)
 ' Core Classes
 class Branch {
     - branch_id: int
-    - branch_code: string
-    - branch_name: string
-    - address: string
-    - phone: string
-    - email: string
     - manager_id: int
-    - status: string
-    - created_at: datetime
-    + getEmployees(): Employee[]
-    + getCustomers(): Customer[]
-    + getAccounts(): Account[]
 }
 
 class Role {
     - role_id: int
-    - role_name: string
-    - description: string
-    - created_at: datetime
-    + getEmployees(): Employee[]
 }
 
 class Employee {
     - employee_id: int
-    - employee_code: string
     - branch_id: int
     - role_id: int
-    - full_name: string
-    - email: string
-    - phone: string
-    - username: string
-    - password_hash: string
-    - status: string
-    - created_at: datetime
-    + login(): boolean
-    + processLoan(loan: Loan): void
-    + appraiseCollateral(collateral: Collateral): void
 }
 
 class Customer {
     - customer_id: int
-    - customer_code: string
-    - full_name: string
-    - email: string
-    - phone: string
-    - id_card_number: string
-    - date_of_birth: date
-    - gender: string
-    - address: string
-    - occupation: string
-    - monthly_income: decimal
     - registered_branch_id: int
-    - username: string
-    - password_hash: string
-    - status: string
-    - created_at: datetime
-    + login(): boolean
-    + viewAccounts(): Account[]
-    + createSavings(amount, term): SavingsDeposit
-    + applyLoan(amount, term): Loan
-    + registerCollateral(collateral): Collateral
 }
 
 class CreditScore {
     - score_id: int
     - customer_id: int
-    - score: int
-    - grade: string
-    - calculated_at: datetime
-    + calculate(): int
-    + updateScore(): void
-    + getGrade(): string
 }
 
 class AccountType {
     - account_type_id: int
-    - type_code: string
-    - type_name: string
-    - description: string
-    - min_balance: decimal
-    - interest_rate: decimal
-    - status: string
-    + getAccounts(): Account[]
 }
 
 class Account {
     - account_id: int
-    - account_number: string
     - customer_id: int
     - account_type_id: int
     - branch_id: int
-    - balance: decimal
-    - interest_rate: decimal
-    - opened_date: date
-    - status: string
-    - created_at: datetime
-    + deposit(amount): void
-    + withdraw(amount): boolean
-    + transfer(toAccount, amount): boolean
-    + getBalance(): decimal
-    + getTransactions(): Transaction[]
 }
 
 class Card {
     - card_id: int
-    - card_number: string
     - account_id: int
-    - card_type: string
-    - issue_date: date
-    - expiry_date: date
-    - status: string
-    - created_at: datetime
-    + activate(): void
-    + block(): void
-    + isExpired(): boolean
 }
 
 class TransactionType {
     - transaction_type_id: int
-    - type_code: string
-    - type_name: string
-    - description: string
-    + getTransactions(): Transaction[]
 }
 
 class Transaction {
     - transaction_id: bigint
-    - transaction_code: string
     - transaction_type_id: int
     - from_account_id: int
     - to_account_id: int
-    - amount: decimal
-    - fee: decimal
-    - description: string
-    - balance_after: decimal
-    - status: string
-    - transaction_date: datetime
-    + process(): void
-    + validate(): boolean
-    + rollback(): void
 }
 
 class SavingsInterestRate {
     - rate_id: int
-    - term_months: int
-    - min_amount: decimal
-    - max_amount: decimal
-    - interest_rate: decimal
-    - status: string
-    - effective_from: date
-    - effective_to: date
-    + getRate(amount, term): decimal
-    + isActive(): boolean
 }
 
 class SavingsDeposit {
     - deposit_id: int
-    - deposit_number: string
     - customer_id: int
     - account_id: int
     - branch_id: int
-    - principal_amount: decimal
     - interest_rate_id: int
-    - interest_rate: decimal
-    - term_months: int
-    - start_date: date
-    - maturity_date: date
-    - auto_renew: string
-    - total_interest_earned: decimal
-    - status: string
-    - created_at: datetime
-    + calculateInterest(): decimal
-    + withdraw(): void
-    + renew(): void
-    + earlyWithdraw(): decimal
 }
 
 class SavingsTransaction {
     - savings_transaction_id: int
     - deposit_id: int
-    - transaction_type: string
-    - amount: decimal
-    - interest_amount: decimal
-    - description: string
-    - transaction_date: datetime
-    + process(): void
 }
 
 class CollateralType {
     - collateral_type_id: int
-    - type_code: string
-    - type_name: string
-    - max_ltv: decimal
-    + getMaxLTV(): decimal
 }
 
 class Collateral {
     - collateral_id: int
     - customer_id: int
     - collateral_type_id: int
-    - collateral_name: string
-    - description: string
-    - location: string
-    - certificate_number: string
-    - issue_date: date
-    - issue_authority: string
-    - original_value: decimal
-    - appraised_value: decimal
     - appraised_by: int
-    - appraised_date: date
-    - status: string
-    - verification_notes: string
-    - created_at: datetime
-    + appraise(value): void
-    + verify(): boolean
-    + calculateLTV(loanAmount): decimal
 }
 
 class LoanType {
     - loan_type_id: int
-    - type_code: string
-    - type_name: string
-    - description: string
-    - max_amount: decimal
-    - max_term_months: int
-    - require_collateral: string
-    + requiresCollateral(): boolean
 }
 
 class LoanInterestRate {
     - rate_id: int
     - loan_type_id: int
-    - min_amount: decimal
-    - max_amount: decimal
-    - term_months_from: int
-    - term_months_to: int
-    - credit_grade: string
-    - base_rate: decimal
-    - effective_from: date
-    - effective_to: date
-    - status: string
-    + getRate(amount, term, grade): decimal
-    + isActive(): boolean
 }
 
 class Loan {
     - loan_id: int
-    - loan_number: string
     - customer_id: int
     - account_id: int
     - loan_type_id: int
     - branch_id: int
     - loan_officer_id: int
-    - loan_amount: decimal
-    - approved_amount: decimal
-    - interest_rate_id: int
-    - interest_rate: decimal
-    - term_months: int
-    - monthly_payment: decimal
-    - purpose: string
     - collateral_id: int
-    - collateral_value: decimal
-    - ltv_ratio: decimal
-    - outstanding_balance: decimal
-    - application_date: date
-    - approved_date: date
-    - approved_by: int
-    - rejection_reason: string
-    - disbursement_date: date
-    - first_payment_date: date
-    - maturity_date: date
-    - status: string
-    - created_at: datetime
-    + apply(): void
-    + approve(amount, rate): void
-    + reject(reason): void
-    + disburse(): void
-    + makePayment(amount): void
-    + calculateLTV(): decimal
-    + calculateMonthlyPayment(): decimal
+    - interest_rate_id: int
 }
 
 class LoanPaymentSchedule {
     - schedule_id: int
     - loan_id: int
-    - payment_number: int
-    - due_date: date
-    - principal_amount: decimal
-    - interest_amount: decimal
-    - total_payment: decimal
-    - outstanding_balance: decimal
-    - status: string
-    - paid_amount: decimal
-    - paid_date: date
-    + isPaid(): boolean
-    + isOverdue(): boolean
-    + markPaid(): void
 }
 
 class LoanPayment {
@@ -310,16 +115,6 @@ class LoanPayment {
     - loan_id: int
     - schedule_id: int
     - transaction_id: bigint
-    - payment_date: datetime
-    - principal_paid: decimal
-    - interest_paid: decimal
-    - late_fee_paid: decimal
-    - total_paid: decimal
-    - payment_method: string
-    - reference_number: string
-    - notes: string
-    + process(): void
-    + calculateLateFee(): decimal
 }
 
 ' Relationships

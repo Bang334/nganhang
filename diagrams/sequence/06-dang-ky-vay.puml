@@ -8,13 +8,13 @@ participant "System" as System
 database "Database" as DB
 
 Customer -> App: Chọn "Đăng ký vay"
-App -> System: Load thông tin vay
+App -> System: Tải danh sách sản phẩm vay
 
-System -> DB: SELECT * FROM LoanTypes\nWHERE status = 'ACTIVE'
-DB --> System: Danh sách loại vay
+System -> DB: Lấy các gói vay đang áp dụng
+DB --> System: Trả về danh sách loại vay
 
-System -> DB: SELECT * FROM LoanInterestRates\nWHERE status = 'ACTIVE'
-DB --> System: Lãi suất cho vay
+System -> DB: Lấy bảng lãi suất hiện hành
+DB --> System: Trả về các mức lãi suất
 
 System --> App: Hiển thị form đăng ký
 
@@ -26,16 +26,16 @@ alt Vay có thế chấp
     Customer -> App: Chọn tài sản thế chấp
     
     alt Tài sản đã có
-        App -> System: Load danh sách tài sản
-        System -> DB: SELECT * FROM Collaterals\nWHERE customer_id = ? AND status = 'AVAILABLE'
-        DB --> System: Danh sách tài sản
+        App -> System: Yêu cầu danh sách tài sản khả dụng
+        System -> DB: Lấy tài sản thế chấp của khách còn sử dụng được
+        DB --> System: Trả về danh sách tài sản
         System --> App: Hiển thị tài sản
         Customer -> App: Chọn tài sản
     else Đăng ký tài sản mới
         Customer -> App: Nhập thông tin tài sản\n(Loại, giá trị, chứng từ)
         App -> System: Create Collateral
-        System -> DB: INSERT Collaterals\n(status = 'PENDING')
-        DB --> System: collateral_id
+        System -> DB: Lưu tài sản chờ thẩm định
+        DB --> System: Ghi nhận mã tài sản mới
     end
     
     App -> System: Tính LTV ratio
@@ -47,11 +47,11 @@ App -> System: Submit Loan Application
 
 System -> DB: BEGIN TRANSACTION
 
-System -> DB: INSERT Loans\n(status = 'PENDING')
-DB --> System: loan_id
+System -> DB: Lưu hồ sơ vay ở trạng thái CHỜ DUYỆT
+DB --> System: Ghi nhận mã hồ sơ
 
-System -> DB: UPDATE Collaterals\nSET status = 'IN_USE'\nWHERE collateral_id = ?
-DB --> System: OK
+System -> DB: Đánh dấu tài sản đã dùng làm thế chấp
+DB --> System: Hoàn tất cập nhật
 
 System -> DB: COMMIT
 

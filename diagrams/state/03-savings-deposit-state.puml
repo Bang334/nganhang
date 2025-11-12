@@ -1,0 +1,41 @@
+@startuml Savings Deposit State
+title State Diagram - Sổ Tiết Kiệm (SavingsDeposits)
+
+[*] --> ACTIVE : Mở sổ tiết kiệm
+
+ACTIVE --> ACTIVE : Đang gửi\n(tích lũy lãi)
+
+ACTIVE --> MATURED : Đến ngày đáo hạn
+
+MATURED --> CLOSED : Rút tiền về TK
+MATURED --> ACTIVE : Tái tục\n(gốc hoặc gốc+lãi)
+
+ACTIVE --> WITHDRAWN_EARLY : Rút sớm\n(trước đáo hạn)
+
+WITHDRAWN_EARLY --> CLOSED : Hoàn tất rút sớm
+
+CLOSED --> [*] : Kết thúc
+
+note right of ACTIVE
+  **Đang gửi:**
+  - Tích lũy lãi
+  - Không thể rút
+  - Có thể rút sớm (phạt)
+end note
+
+note right of MATURED
+  **Đã đáo hạn:**
+  - Có thể rút tiền
+  - Có thể tái tục
+  - Tự động tái tục (nếu có)
+end note
+
+note right of WITHDRAWN_EARLY
+  **Rút sớm:**
+  - Trước ngày đáo hạn
+  - Bị phạt lãi suất
+  - Chỉ nhận lãi không kỳ hạn
+end note
+
+@enduml
+

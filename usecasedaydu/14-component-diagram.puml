@@ -1,0 +1,196 @@
+@startuml Component Diagram
+!theme plain
+
+title Sơ đồ Thành phần - Kiến trúc Hệ thống Ngân hàng
+
+skinparam componentStyle rectangle
+
+package "Client Layer" {
+    [Web Application] as WebApp
+    [Mobile App (iOS)] as iOS
+    [Mobile App (Android)] as Android
+    [Admin Portal] as AdminPortal
+}
+
+package "API Gateway Layer" {
+    [API Gateway] as Gateway
+    [Load Balancer] as LB
+    [Authentication Service] as AuthService
+    [Rate Limiter] as RateLimit
+}
+
+package "Application Layer" {
+    package "Account Management" {
+        [Account Controller] as AccController
+        [Account Service] as AccService
+        [Account Repository] as AccRepo
+    }
+    
+    package "Transaction Management" {
+        [Transaction Controller] as TxController
+        [Transaction Service] as TxService
+        [Transaction Repository] as TxRepo
+        [Payment Gateway Adapter] as PaymentAdapter
+    }
+    
+    package "Savings Management" {
+        [Savings Controller] as SavController
+        [Savings Service] as SavService
+        [Savings Repository] as SavRepo
+        [Interest Calculator] as InterestCalc
+    }
+    
+    package "Loan Management" {
+        [Loan Controller] as LoanController
+        [Loan Service] as LoanService
+        [Loan Repository] as LoanRepo
+        [Credit Score Service] as CreditService
+        [Collateral Service] as CollateralService
+    }
+    
+    package "Customer Management" {
+        [Customer Controller] as CustController
+        [Customer Service] as CustService
+        [Customer Repository] as CustRepo
+    }
+    
+    package "Admin Management" {
+        [Admin Controller] as AdminController
+        [Report Service] as ReportService
+        [Configuration Service] as ConfigService
+    }
+}
+
+package "Core Services Layer" {
+    [OTP Service] as OTPService
+    [Notification Service] as NotifyService
+    [Document Service] as DocService
+    [Audit Service] as AuditService
+    [Scheduler Service] as Scheduler
+}
+
+package "Data Access Layer" {
+    [Database Access Layer] as DAL
+    database "MySQL Database" as DB
+    database "Redis Cache" as Cache
+    [File Storage] as Storage
+}
+
+package "External Services" {
+    [SMS Gateway] as SMS
+    [Email Service] as Email
+    [CIC System] as CIC
+    [Payment Gateway] as PaymentGW
+}
+
+' Client to API Gateway
+WebApp --> Gateway
+iOS --> Gateway
+Android --> Gateway
+AdminPortal --> Gateway
+
+' API Gateway Layer connections
+Gateway --> LB
+LB --> AuthService
+LB --> RateLimit
+
+' Gateway to Controllers
+RateLimit --> AccController
+RateLimit --> TxController
+RateLimit --> SavController
+RateLimit --> LoanController
+RateLimit --> CustController
+RateLimit --> AdminController
+
+' Account Management
+AccController --> AccService
+AccService --> AccRepo
+AccRepo --> DAL
+
+' Transaction Management
+TxController --> TxService
+TxService --> TxRepo
+TxService --> PaymentAdapter
+TxRepo --> DAL
+PaymentAdapter --> PaymentGW
+
+' Savings Management
+SavController --> SavService
+SavService --> SavRepo
+SavService --> InterestCalc
+SavRepo --> DAL
+
+' Loan Management
+LoanController --> LoanService
+LoanService --> LoanRepo
+LoanService --> CreditService
+LoanService --> CollateralService
+LoanRepo --> DAL
+CreditService --> CIC
+
+' Customer Management
+CustController --> CustService
+CustService --> CustRepo
+CustRepo --> DAL
+
+' Admin Management
+AdminController --> ReportService
+AdminController --> ConfigService
+ReportService --> DAL
+ConfigService --> DAL
+
+' Core Services
+TxService --> OTPService
+AccService --> NotifyService
+LoanService --> NotifyService
+SavService --> NotifyService
+LoanService --> DocService
+AdminController --> AuditService
+
+' Scheduler
+Scheduler --> SavService : "Daily maturity check"
+Scheduler --> LoanService : "Auto payment"
+Scheduler --> ReportService : "Daily reports"
+
+' Data Access
+DAL --> DB
+DAL --> Cache
+DocService --> Storage
+
+' Notification Service to External
+NotifyService --> SMS
+NotifyService --> Email
+
+' Audit Service
+AuditService --> DB
+
+note right of Gateway
+  **API Gateway**
+  - Authentication
+  - Rate limiting
+  - Load balancing
+  - Request routing
+  - API versioning
+end note
+
+note right of Scheduler
+  **Scheduled Jobs**
+  - Đáo hạn tiết kiệm (00:00)
+  - Trả nợ tự động (01:00)
+  - Tính lãi (02:00)
+  - Báo cáo (03:00)
+  - Backup (04:00)
+end note
+
+note bottom of DB
+  **Database**
+  - MySQL for transactions
+  - Redis for caching
+  - File Storage for documents
+end note
+
+@enduml
+
+
+
+

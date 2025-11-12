@@ -1,0 +1,50 @@
+@startuml Chuyển Khoản
+title Activity Diagram - Chuyển Khoản
+
+|Khách hàng|
+start
+:Đăng nhập;
+:Chọn "Chuyển khoản";
+:Nhập thông tin;
+note right
+- Ngân hàng nhận
+- Số TK người nhận
+- Số tiền, Nội dung
+end note
+
+|Hệ thống|
+if (Số dư đủ?) then (có)
+  if (Chuyển nội bộ?) then (có)
+    if (TK đích tồn tại?) then (có)
+      :Trừ tiền TK nguồn;
+      :Cộng tiền TK đích;
+      :Ghi nhận (phí = 0);
+    else (không)
+      :Lỗi: TK không tồn tại;
+      stop
+    endif
+    
+  else (Liên ngân hàng)
+    :Tính phí (5,000đ);
+    if (Số dư đủ (tiền + phí)?) then (có)
+      :Trừ tiền + phí;
+      :Gửi yêu cầu đến NH đích;
+      :Ghi nhận (có phí);
+      note right
+      Có thể mất 1-2 ngày
+      end note
+    else (không)
+      :Lỗi: Số dư không đủ;
+      stop
+    endif
+  endif
+  
+  |Khách hàng|
+  :Hiển thị biên lai;
+  :Thông báo thành công;
+else (không)
+  :Lỗi: Số dư không đủ;
+endif
+stop
+
+@enduml

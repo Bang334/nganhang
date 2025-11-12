@@ -10,8 +10,8 @@ database "Database" as DB
 Customer -> Teller: Yêu cầu kích hoạt thẻ\n(Thẻ + CMND)
 Teller -> System: Nhập số tài khoản
 
-System -> DB: SELECT * FROM Cards\nWHERE account_id = ?
-DB --> System: Card info
+System -> DB: Tra cứu thẻ gắn với tài khoản này
+DB --> System: Trả về thông tin thẻ
 
 alt Thẻ tồn tại
     System --> Teller: Hiển thị thông tin thẻ\n(Card number masked, expiry)
@@ -23,8 +23,8 @@ alt Thẻ tồn tại
     System -> System: Validate mã kích hoạt
     
     alt Mã hợp lệ
-        System -> DB: UPDATE Cards\nSET status = 'ACTIVE',\nactivated_at = NOW()
-        DB --> System: OK
+        System -> DB: Cập nhật trạng thái thẻ sang ĐÃ KÍCH HOẠT
+        DB --> System: Xác nhận cập nhật
         
         System --> Teller: Kích hoạt thành công\n(Biên nhận)
         Teller --> Customer: Giao thẻ đã kích hoạt\nvà biên nhận

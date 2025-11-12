@@ -1,0 +1,190 @@
+@startuml Package Diagram
+!theme plain
+title Sơ đồ Gói - Hệ thống Quản lý Ngân hàng
+
+package Frontend as "Frontend (React Application)" {
+  package "Pages" {
+    [CustomerDashboard]
+    [TellerDashboard]
+    [LoanOfficerDashboard]
+    [AdminDashboard]
+    [LoginPage]
+  }
+  
+  package "Components" {
+    package "customer" {
+      [Accounts]
+      [Transfer]
+      [Savings]
+      [Loans]
+      [CreditScore]
+    }
+    
+    package "teller" {
+      [NewAccount]
+      [Deposit]
+      [Withdraw]
+      [CardActivation]
+    }
+    
+    package "loanOfficer" {
+      [PendingLoans]
+      [LoanApproval]
+      [CreditScoreManagement]
+      [OverdueLoans]
+    }
+    
+    package "admin" {
+      [BranchManagement]
+      [EmployeeManagement]
+      [Reports]
+    }
+    
+    package "common" {
+      [Modal]
+      [ProfileEdit]
+    }
+  }
+  
+  package "Services" {
+    [AuthService]
+    [APIService]
+  }
+  
+  package "Utils" {
+    [Formatters]
+    [Validators]
+    [Constants]
+  }
+  
+  package "Data" {
+    [MockData]
+    [Types]
+  }
+}
+
+package "Backend (Node.js/Express)" {
+  package "Controllers" {
+    [AuthController]
+    [AccountController]
+    [TransactionController]
+    [LoanController]
+    [SavingsController]
+    [CreditScoreController]
+  }
+  
+  package "Services" as BackendServices {
+    [AccountService]
+    [TransactionService]
+    [LoanService]
+    [SavingsService]
+    [CreditService]
+    [NotificationService]
+  }
+  
+  package "Models" {
+    [Customer]
+    [Account]
+    [Transaction]
+    [Loan]
+    [Savings]
+    [CreditScore]
+    [Employee]
+    [Branch]
+  }
+  
+  package "Middleware" {
+    [Authentication]
+    [Authorization]
+    [ValidationMiddleware]
+    [ErrorHandler]
+  }
+  
+  package "Utils" as BackendUtils {
+    [Database]
+    [PasswordHash]
+    [TokenGenerator]
+    [EmailSender]
+  }
+  
+  package "Config" {
+    [DatabaseConfig]
+    [ServerConfig]
+    [EmailConfig]
+  }
+}
+
+package "Database Layer" {
+  package "Tables" {
+    [Customers]
+    [Accounts]
+    [Transactions]
+    [Loans]
+    [SavingsDeposits]
+    [CreditScores]
+    [Employees]
+    [Branches]
+  }
+  
+  package "Views" {
+    [CustomerAccountView]
+    [LoanSummaryView]
+    [TransactionHistoryView]
+  }
+  
+  package "Stored Procedures" {
+    [ProcessLoanPayment]
+    [CalculateCreditScore]
+    [ProcessMaturity]
+  }
+}
+
+' Frontend Dependencies
+Pages ..> Components : uses
+Components ..> Services : calls
+Components ..> Utils : uses
+Services ..> Data : accesses
+
+[CustomerDashboard] ..> customer
+[TellerDashboard] ..> teller
+[LoanOfficerDashboard] ..> loanOfficer
+[AdminDashboard] ..> admin
+
+' Backend Dependencies
+Controllers ..> BackendServices : delegates
+BackendServices ..> Models : uses
+Controllers ..> Middleware : applies
+BackendServices ..> BackendUtils : uses
+Models ..> Config : reads
+
+' Cross-layer Dependencies
+Services --> Controllers : HTTP/REST
+BackendServices --> Tables : CRUD
+Models --> Tables : maps to
+
+note right of Frontend
+  **Technology Stack:**
+  - React 18
+  - React Router
+  - Axios
+  - CSS Modules
+end note
+
+note right of Backend
+  **Technology Stack:**
+  - Node.js
+  - Express
+  - MySQL2
+  - JWT
+  - Bcrypt
+end note
+
+note right of "Database Layer"
+  **Database:**
+  - MySQL 8.0
+  - InnoDB Engine
+  - UTF8MB4 Charset
+end note
+
+@enduml
+

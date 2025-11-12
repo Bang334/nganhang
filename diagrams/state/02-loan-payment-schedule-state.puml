@@ -1,0 +1,40 @@
+@startuml Loan Payment Schedule State
+title State Diagram - Lịch Trả Nợ (LoanPaymentSchedule)
+
+[*] --> PENDING : Tạo lịch trả nợ
+
+PENDING --> PAID : Trả đủ tiền\n(đúng hạn hoặc sớm)
+PENDING --> OVERDUE : Quá hạn chưa trả
+PENDING --> PARTIAL_PAID : Trả một phần
+
+PARTIAL_PAID --> PAID : Trả đủ phần còn lại
+PARTIAL_PAID --> OVERDUE : Quá hạn chưa trả đủ
+
+OVERDUE --> PAID : Trả đủ (có phí trễ)
+OVERDUE --> PARTIAL_PAID : Trả một phần
+
+PAID --> [*] : Hoàn thành
+
+note right of PENDING
+  **Chờ trả nợ:**
+  - Đến ngày đáo hạn
+  - Số tiền: Gốc + Lãi
+  - Có thể trả trước
+end note
+
+note right of OVERDUE
+  **Quá hạn:**
+  - Tính phí trễ hạn
+  - Giảm điểm tín dụng
+  - Gửi thông báo
+end note
+
+note right of PARTIAL_PAID
+  **Trả một phần:**
+  - Trả < 100% số tiền
+  - Vẫn còn nợ
+  - Có thể trả tiếp
+end note
+
+@enduml
+

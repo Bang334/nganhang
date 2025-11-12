@@ -1,124 +1,66 @@
-@startuml
-title Activity Diagram - Xử lý Nợ Quá Hạn
+@startuml Xử lý Nợ Quá Hạn
+title Activity Diagram - Xử lý Nợ Quá Hạn (Scheduled Job)
 
-|Hệ thống (Scheduled Job)|
+|Hệ thống|
 start
 :Chạy job hàng ngày (00:00);
-:Tìm các kỳ trả nợ quá hạn;
+:Tìm kỳ trả nợ quá hạn;
 
-if (Có kỳ quá hạn?) then (không)
-  :Không có việc gì;
-  stop
-else (có)
-  :Duyệt từng kỳ quá hạn;
-  
+if (Có kỳ quá hạn?) then (có)
   repeat
     :Tính số ngày quá hạn;
-    :Tính phí trễ hạn;
+    :Tính phí trễ;
     
-    if (Số ngày quá hạn?) then (1-7 ngày)
-      partition "Mức 1: Nhắc nhở" {
-        :Cập nhật trạng thái kỳ trả nợ (Quá hạn);
-        :Gửi SMS nhắc nhở;
-        :Gửi Email nhắc nhở;
-        :Gửi thông báo app;
-        
-        note right
-        Chưa giảm điểm trong 7 ngày đầu
-        (Có thời gian cho khách hàng)
-        end note
-      }
+    if (Số ngày?) then (1-7 ngày)
+      :Gửi SMS/Email nhắc;
+      :Gửi thông báo app;
+      note right
+      Chưa giảm điểm
+      trong 7 ngày đầu
+      end note
       
     elseif (8-30 ngày) then
-      partition "Mức 2: Cảnh báo - Giảm điểm" {
-        :Tính và cập nhật phí trễ;
-        :Gửi thông báo cảnh báo;
-        :Gọi điện nhắc nhở;
-        
-        partition "Cập nhật điểm tín dụng" {
-          :Lấy điểm tín dụng hiện tại;
-          :Tính điểm mới (trừ 5 điểm);
-          :Cập nhật vào CreditScores;
-          :Lưu vào CreditScoreHistory;
-          note right
-          Event Type: OVERDUE_7_DAYS
-          Score Change: -5 điểm
-          Reason: "Trả nợ trễ 8-30 ngày"
-          end note
-        }
-        
-        :Cập nhật số kỳ quá hạn (+1);
-      }
+      :Cập nhật phí trễ;
+      :Gọi điện nhắc;
+      :Giảm điểm -5;
+      :Lưu CreditScoreHistory;
       
     elseif (31-90 ngày) then
-      partition "Mức 3: Nghiêm trọng - Giảm mạnh điểm" {
-        :Tính phí trễ tích lũy;
-        :Gửi cảnh báo nghiêm trọng;
-        
-        |Nhân viên Tín dụng|
-        :Nhận thông báo nợ xấu;
-        :Liên hệ khách hàng;
-        :Lên kế hoạch thu hồi nợ;
-        
-        |Hệ thống|
-        partition "Cập nhật điểm tín dụng (Giảm mạnh)" {
-          :Lấy điểm tín dụng hiện tại;
-          :Tính điểm mới (trừ 20 điểm);
-          :Cập nhật vào CreditScores;
-          :Lưu vào CreditScoreHistory;
-          note right
-          Event Type: OVERDUE_30_DAYS
-          Score Change: -20 điểm
-          Reason: "Trả nợ trễ 31-90 ngày"
-          end note
-        }
-        
-        :Khóa các tính năng vay mới;
-        :Cập nhật số kỳ quá hạn (+1);
-      }
+      :Gửi cảnh báo nghiêm trọng;
+      
+      |NV Tín dụng|
+      :Liên hệ KH;
+      :Lên kế hoạch thu nợ;
+      
+      |Hệ thống|
+      :Giảm điểm -20;
+      :Khóa tính năng vay mới;
+      :Lưu CreditScoreHistory;
       
     else (> 90 ngày)
-      partition "Mức 4: Xử lý pháp lý - Hạ điểm tối đa" {
-        :Cập nhật trạng thái khoản vay (Nợ xấu);
-        :Tạo hồ sơ nợ xấu;
-        
-        |Nhân viên Tín dụng|
-        :Đánh giá tình hình;
-        
-        if (Có tài sản thế chấp?) then (có)
-          :Khởi tạo thủ tục thu hồi;
-          :Gửi thông báo thu hồi tài sản;
-          :Chuẩn bị hồ sơ pháp lý;
-          
-        else (không)
-          :Chuyển sang công ty thu hồi nợ;
-          :Báo cáo CIC (Credit Bureau);
-        endif
-        
-        |Hệ thống|
-        partition "Cập nhật điểm tín dụng (Hạ tối đa)" {
-          :Lấy điểm tín dụng hiện tại;
-          :Hạ điểm xuống mức thấp nhất (300-400);
-          :Cập nhật hạng thành 'C' hoặc 'D';
-          :Cập nhật vào CreditScores;
-          :Lưu vào CreditScoreHistory;
-          note right
-          Event Type: OVERDUE_90_DAYS
-          Score Change: -50 đến -200 điểm
-          Reason: "Nợ quá hạn > 90 ngày"
-          end note
-        }
-        
-        :Khóa toàn bộ tính năng vay;
-        :Gửi thông báo pháp lý;
-      }
+      :Cập nhật (Nợ xấu);
+      
+      |NV Tín dụng|
+      if (Có thế chấp?) then (có)
+        :Khởi tạo thu hồi tài sản;
+        :Chuẩn bị hồ sơ pháp lý;
+      else (không)
+        :Chuyển công ty thu nợ;
+        :Báo cáo CIC;
+      endif
+      
+      |Hệ thống|
+      :Hạ điểm xuống 300-400;
+      :Cập nhật hạng 'C' hoặc 'D';
+      :Khóa toàn bộ tính năng vay;
+      :Lưu CreditScoreHistory;
     endif
     
-    :Lưu log xử lý;
-    
-  repeat while (Còn kỳ quá hạn?) is (có) not (hết)
+    :Lưu log;
+  repeat while (Còn kỳ?) is (có)
   
   :Tạo báo cáo nợ quá hạn;
-  stop
 endif
+stop
+
 @enduml

@@ -7,20 +7,20 @@ participant "System" as System
 database "Database" as DB
 
 LoanOfficer -> System: Login và xem hồ sơ chờ duyệt
-System -> DB: SELECT * FROM Loans\nWHERE status = 'PENDING'\nORDER BY application_date
-DB --> System: Danh sách hồ sơ
+System -> DB: Lấy danh sách hồ sơ vay đang chờ duyệt
+DB --> System: Trả về danh sách hồ sơ
 
 LoanOfficer -> System: Chọn hồ sơ để thẩm định
-System -> DB: Load thông tin chi tiết\n(Customer, Loan, Collateral)
-DB --> System: Full loan info
+System -> DB: Load thông tin chi tiết (Khách hàng, Khoản vay, Tài sản)
+DB --> System: Trả về đầy đủ thông tin hồ sơ
 System --> LoanOfficer: Hiển thị thông tin hồ sơ
 
 == Bước 1: Đánh giá Tín dụng ==
 LoanOfficer -> System: Nhập thu nhập, tỷ lệ nợ/thu nhập
-System -> System: Tính điểm tín dụng\nScore = f(income, debt_ratio, history)
-System -> DB: INSERT/UPDATE CreditScores
-DB --> System: credit_score_id
-System --> LoanOfficer: Hiển thị điểm và xếp hạng\n(AAA, AA, A, BBB, etc.)
+System -> System: Tính điểm tín dụng (300-850)\nScore = f(payment_history 35%, debt_ratio 30%, account_age 15%, debt_balance 10%, late_payments 10%)
+System -> DB: Cập nhật hồ sơ điểm tín dụng của khách
+DB --> System: Ghi nhận mã điểm tín dụng
+System --> LoanOfficer: Hiển thị điểm và xếp hạng\n(11 cấp: AAA 800-850 → C 300-349)\nLãi suất: 8.5% - 16%/năm
 
 == Bước 2: Thẩm định Tài sản (nếu có) ==
 alt Có tài sản thế chấp
@@ -28,8 +28,8 @@ alt Có tài sản thế chấp
     System -> System: Tính LTV ratio\nLTV = (Loan / Collateral) * 100%
     
     alt LTV hợp lệ (≤ Max LTV)
-        System -> DB: UPDATE Collaterals\nSET appraised_value = ?,\nappraised_by = ?,\nstatus = 'AVAILABLE'
-        DB --> System: OK
+        System -> DB: Cập nhật giá trị thẩm định và trạng thái tài sản
+        DB --> System: Xác nhận cập nhật
         System --> LoanOfficer: Tài sản hợp lệ
     else LTV vượt mức
         System --> LoanOfficer: Cảnh báo: LTV vượt mức cho phép
@@ -42,23 +42,23 @@ alt Phê duyệt
     System -> System: Tính khoản trả hàng tháng
     
     LoanOfficer -> System: Xác nhận phê duyệt
-    System -> DB: UPDATE Loans\nSET status = 'APPROVED',\napproved_amount = ?,\napproved_by = ?,\napproved_date = NOW()
-    DB --> System: OK
+    System -> DB: Cập nhật hồ sơ vay sang trạng thái ĐÃ DUYỆT
+    DB --> System: Xác nhận cập nhật
     
-    System -> DB: Generate LoanPaymentSchedule\n(Lịch trả nợ)
-    DB --> System: OK
+    System -> DB: Tạo lịch trả nợ cho khoản vay
+    DB --> System: Xác nhận đã tạo lịch
     
     System --> LoanOfficer: Phê duyệt thành công
     System -> System: Gửi thông báo cho khách hàng
     
 else Từ chối
     LoanOfficer -> System: Nhập lý do từ chối
-    System -> DB: UPDATE Loans\nSET status = 'REJECTED',\nrejection_reason = ?
-    DB --> System: OK
+    System -> DB: Cập nhật hồ sơ vay sang trạng thái TỪ CHỐI
+    DB --> System: Xác nhận cập nhật
     
     alt Có tài sản thế chấp
-        System -> DB: UPDATE Collaterals\nSET status = 'AVAILABLE'
-        DB --> System: OK
+        System -> DB: Giải phóng trạng thái tài sản thế chấp
+        DB --> System: Xác nhận cập nhật
     end
     
     System --> LoanOfficer: Từ chối thành công

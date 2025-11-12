@@ -1,0 +1,58 @@
+@startuml
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor "Loan Officer" as LoanOfficer
+
+rectangle "Quản lý hồ sơ vay" {
+  usecase "Xem danh sách hồ sơ" as UC_ViewLoanList
+  usecase "Xem chi tiết hồ sơ" as UC_ViewLoanDetail
+  usecase "Yêu cầu bổ sung hồ sơ" as UC_RequestMoreDocs
+}
+
+rectangle "Thẩm định" {
+  usecase "Đánh giá điểm tín dụng" as UC_AssessCredit
+  usecase "Thẩm định tài sản" as UC_AppraiseCollateral
+  usecase "Tính LTV" as UC_CalculateLTV
+  usecase "Phê duyệt/Từ chối" as UC_DecideLoan
+}
+
+rectangle "Quản lý tài sản" {
+  usecase "Xem tài sản" as UC_ViewCollateral
+  usecase "Cập nhật giá trị thẩm định" as UC_UpdateAppraisal
+}
+
+rectangle "Quản lý nợ" {
+  usecase "Xem nợ quá hạn" as UC_ViewOverdue
+  usecase "Phân loại nợ" as UC_ClassifyDebt
+  usecase "Xử lý nợ quá hạn" as UC_HandleOverdue
+  usecase "Gửi thông báo" as UC_SendNotification
+}
+
+rectangle "Báo cáo" {
+  usecase "Báo cáo chất lượng tín dụng" as UC_CreditQualityReport
+  usecase "Thống kê nợ xấu" as UC_NPLReport
+}
+
+LoanOfficer --> UC_ViewLoanList
+LoanOfficer --> UC_ViewLoanDetail
+LoanOfficer --> UC_RequestMoreDocs
+
+LoanOfficer --> UC_AssessCredit
+LoanOfficer --> UC_AppraiseCollateral
+LoanOfficer --> UC_CalculateLTV
+LoanOfficer --> UC_DecideLoan
+
+LoanOfficer --> UC_ViewCollateral
+LoanOfficer --> UC_UpdateAppraisal
+
+LoanOfficer --> UC_ViewOverdue
+LoanOfficer --> UC_ClassifyDebt
+LoanOfficer --> UC_HandleOverdue
+LoanOfficer --> UC_SendNotification
+
+LoanOfficer --> UC_CreditQualityReport
+LoanOfficer --> UC_NPLReport
+@enduml

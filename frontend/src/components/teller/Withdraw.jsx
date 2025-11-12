@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, DollarSign, User, CreditCard, AlertCircle, CheckCircle, Clock, TrendingDown } from 'lucide-react';
-import { formatCurrency } from '../../data/mockData';
+import { formatCurrency, getAccountDetailsByNumber } from '../../data/mockData';
 import '../../styles/TellerDashboard.css';
 
 const Withdraw = () => {
@@ -16,19 +16,38 @@ const Withdraw = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    
-    // Giả lập tìm kiếm khách hàng
-    if (accountNumber) {
+
+    if (!accountNumber) return;
+
+    const details = getAccountDetailsByNumber(accountNumber);
+
+    if (!details) {
+      alert('Không tìm thấy tài khoản. Chế độ demo sẽ hiển thị dữ liệu mẫu để bạn đối chiếu.');
       setCustomerInfo({
-        accountNumber: accountNumber,
-        customerName: 'Trần Thị B',
+        accountNumber: accountNumber || 'DEMO987654',
+        customerName: 'Trần Thị B (demo)',
         customerCode: 'KH005678',
-        balance: 25000000,
         accountType: 'Tài khoản thanh toán',
+        balance: 25000000,
         dailyLimit: 50000000,
         withdrawnToday: 5000000,
+        branchName: 'Chi nhánh Sài Gòn',
+        idCard: '001234567891',
       });
+      return;
     }
+
+    setCustomerInfo({
+      accountNumber: details.accountNumber,
+      customerName: details.ownerName,
+      customerCode: details.ownerCode,
+      accountType: details.accountTypeName,
+      balance: details.balance,
+      dailyLimit: 50000000,
+      withdrawnToday: 0,
+      branchName: details.branchName,
+      idCard: details.ownerIdCard,
+    });
   };
 
   const handleWithdraw = (e) => {
@@ -127,14 +146,31 @@ const Withdraw = () => {
                   <span className="value">{customerInfo.customerName}</span>
                 </div>
                 <div className="customer-info-item">
+                  <span className="label">CCCD/CMND:</span>
+                  <span className="value" style={{fontWeight: 600}}>{customerInfo.idCard}</span>
+                </div>
+                <div className="customer-info-item">
                   <span className="label">Loại TK:</span>
                   <span className="value">{customerInfo.accountType}</span>
                 </div>
+                {customerInfo.branchName && (
+                  <div className="customer-info-item">
+                    <span className="label">Chi nhánh mở:</span>
+                    <span className="value">{customerInfo.branchName}</span>
+                  </div>
+                )}
                 <div className="customer-info-item">
                   <span className="label">Số dư hiện tại:</span>
                   <span className="value" style={{color: '#4299e1'}}>
                     {formatCurrency(customerInfo.balance)}
                   </span>
+                </div>
+                <div className="teller-alert info" style={{marginTop: '1rem'}}>
+                  <User size={16} />
+                  <div>
+                    <div style={{fontWeight: 600}}>Đối chiếu CCCD tại quầy</div>
+                    <div style={{fontSize: '0.875rem'}}>Yêu cầu khách hàng xuất trình CCCD và so sánh với mã {customerInfo.idCard} trước khi giải ngân tiền mặt.</div>
+                  </div>
                 </div>
                 <div style={{marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0'}}>
                   <div className="customer-info-item">

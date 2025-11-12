@@ -1,54 +1,48 @@
-@startuml Nạp/Rút Tiền tại Quầy
-title Activity Diagram - Nạp/Rút Tiền
+@startuml Nạp/Rút Tiền
+title Activity Diagram - Nạp/Rút Tiền tại Quầy
 
-||Khách hàng|
+|Khách hàng|
 start
 :Yêu cầu nạp/rút tiền;
-:Cung cấp số tài khoản và tiền mặt;
+:Cung cấp số TK và tiền mặt;
 
-||Giao dịch viên|
-:Nhập thông tin giao dịch;
-note right
-- Số tài khoản
-- Loại giao dịch (Nạp/Rút)
-- Số tiền
-end note
+|Giao dịch viên|
+:Đối chiếu CCCD với chủ tài khoản;
+if (CCCD khớp?) then (có)
+  :Nhập thông tin giao dịch;
 
-||Hệ thống|
-if (Tài khoản tồn tại?) then (không)
-  |Khách hàng|
-  :Thông báo lỗi;
-  stop
-else (có)
-  |Giao dịch viên|
-  if (Loại giao dịch?) then (Nạp tiền)
-    :Cộng tiền vào tài khoản;
-    :Ghi nhận giao dịch nạp tiền;
-    :Cập nhật số dư tài khoản;
-    :In biên lai;
-    
-  else (Rút tiền)
-    if (50K <= Số tiền <= 5M?) then (không)
-      :Lỗi: Hạn mức không hợp lệ;
-      stop
-    endif
-    
-    if (Số dư đủ?) then (không)
-      |Khách hàng|
-      :Thông báo số dư không đủ;
-      stop
-    else (có)
-      |Giao dịch viên|
-      :Trừ tiền từ tài khoản;
-      :Ghi nhận giao dịch rút tiền;
-      :Cập nhật số dư tài khoản;
+  |Hệ thống|
+  if (Tài khoản tồn tại?) then (có)
+    if (Loại giao dịch?) then (Nạp)
+      :Cộng tiền vào tài khoản;
+      :Ghi nhận giao dịch;
       :In biên lai;
+      
+    else (Rút)
+      if (50K <= Số tiền <= 5M?) then (có)
+        if (Số dư đủ?) then (có)
+          :Trừ tiền từ tài khoản;
+          :Ghi nhận giao dịch;
+          :In biên lai;
+        else (không)
+          :Số dư không đủ;
+          stop
+        endif
+      else (không)
+        :Hạn mức không hợp lệ;
+        stop
+      endif
     endif
+    
+    |Khách hàng|
+    :Nhận biên lai;
+  else (không)
+    :Tài khoản không tồn tại;
   endif
-  
-  |Khách hàng|
-  :Nhận biên lai;
+else (không)
+  :Từ chối giao dịch (CCCD không khớp);
   stop
 endif
+stop
 
 @enduml

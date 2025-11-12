@@ -1,0 +1,171 @@
+@startuml UseCase Diagram
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+skinparam actorStyle awesome
+
+title Hệ thống Quản lý Ngân hàng - Use Case Diagram (Đầy đủ)
+
+left to right direction
+
+' Actors
+actor "Khách hàng\n(Customer)" as Customer #lightblue
+actor "Giao dịch viên\n(Teller)" as Teller #lightgreen
+actor "Nhân viên Tín dụng\n(Loan Officer)" as LoanOfficer #yellow
+actor "Quản trị viên\n(Admin)" as Admin #pink
+
+' External Systems
+actor "Hệ thống CIC\n(Credit Bureau)" as CIC #gray
+actor "Payment Gateway" as Gateway #gray
+actor "SMS/Email Service" as Notification #gray
+
+rectangle "Banking System" {
+    ' Customer Use Cases
+    package "Quản lý Tài khoản" #LightCyan {
+        usecase (UC01: Xem Tài khoản) as UC1
+        usecase (UC02: Xem Số dư) as UC2
+        usecase (UC03: Xem Lịch sử GD) as UC3
+        usecase (UC04: Đóng Tài khoản) as UC4
+    }
+    
+    package "Giao dịch" #LightYellow {
+        usecase (UC05: Chuyển khoản) as UC5
+        usecase (UC06: Nạp tiền) as UC6
+        usecase (UC07: Rút tiền) as UC7
+        usecase (UC08: Xác thực OTP) as UC8
+        usecase (UC09: Tính phí GD) as UC9
+    }
+    
+    package "Tiết kiệm" #LightGreen {
+        usecase (UC10: Mở Sổ Tiết kiệm) as UC10
+        usecase (UC11: Xem Sổ Tiết kiệm) as UC11
+        usecase (UC12: Rút Trước hạn) as UC12
+        usecase (UC13: Đáo hạn TK) as UC13
+        usecase (UC14: Tái tục TK) as UC14
+        usecase (UC15: Tính lãi TK) as UC15
+    }
+    
+    package "Vay vốn" #LightPink {
+        usecase (UC16: Đăng ký Vay) as UC16
+        usecase (UC17: Xem Khoản vay) as UC17
+        usecase (UC18: Đăng ký Tài sản) as UC18
+        usecase (UC19: Trả nợ) as UC19
+        usecase (UC20: Trả trước hạn) as UC20
+    }
+    
+    package "Giao dịch Quầy" #Lavender {
+        usecase (UC21: Mở Tài khoản Mới) as UC21
+        usecase (UC22: Nạp tiền Quầy) as UC22
+        usecase (UC23: Rút tiền Quầy) as UC23
+        usecase (UC24: Kích hoạt Thẻ) as UC24
+        usecase (UC25: Xác minh CMND) as UC25
+    }
+    
+    package "Tín dụng" #LightSalmon {
+        usecase (UC26: Thẩm định Vay) as UC26
+        usecase (UC27: Phê duyệt Vay) as UC27
+        usecase (UC28: Giải ngân) as UC28
+        usecase (UC29: Thẩm định Tài sản) as UC29
+        usecase (UC30: Xử lý Nợ quá hạn) as UC30
+        usecase (UC31: Tra cứu CIC) as UC31
+        usecase (UC32: Tính DTI/LTV) as UC32
+        usecase (UC33: Đáo hạn Vay) as UC33
+    }
+    
+    package "Quản trị" #LightGoldenRodYellow {
+        usecase (UC34: Quản lý Chi nhánh) as UC34
+        usecase (UC35: Quản lý Nhân viên) as UC35
+        usecase (UC36: Quản lý Khách hàng) as UC36
+        usecase (UC37: Xem Báo cáo) as UC37
+        usecase (UC38: Cấu hình Hệ thống) as UC38
+        usecase (UC39: Quản lý Lãi suất) as UC39
+        usecase (UC40: Audit Log) as UC40
+    }
+    
+    package "Hệ thống" #LightGray {
+        usecase (UC41: Tính điểm Tín dụng) as UC41
+        usecase (UC42: Gửi Thông báo) as UC42
+        usecase (UC43: Xử lý Đáo hạn tự động) as UC43
+        usecase (UC44: Tự động Trả nợ) as UC44
+        usecase (UC45: Backup Data) as UC45
+    }
+}
+
+' Customer Relations
+Customer --> UC1
+Customer --> UC2
+Customer --> UC3
+Customer --> UC4
+Customer --> UC5
+Customer --> UC10
+Customer --> UC11
+Customer --> UC12
+Customer --> UC16
+Customer --> UC17
+Customer --> UC18
+Customer --> UC19
+Customer --> UC20
+
+' Teller Relations
+Teller --> UC21
+Teller --> UC22
+Teller --> UC23
+Teller --> UC24
+
+' Loan Officer Relations
+LoanOfficer --> UC26
+LoanOfficer --> UC27
+LoanOfficer --> UC28
+LoanOfficer --> UC29
+LoanOfficer --> UC30
+
+' Admin Relations
+Admin --> UC34
+Admin --> UC35
+Admin --> UC36
+Admin --> UC37
+Admin --> UC38
+Admin --> UC39
+Admin --> UC40
+
+' Include Relationships
+UC5 ..> UC8 : <<include>>
+UC5 ..> UC9 : <<include>>
+UC16 ..> UC18 : <<include>>
+UC16 ..> UC41 : <<include>>
+UC26 ..> UC29 : <<include>>
+UC26 ..> UC31 : <<include>>
+UC26 ..> UC32 : <<include>>
+UC10 ..> UC15 : <<include>>
+UC22 ..> UC25 : <<include>>
+UC23 ..> UC25 : <<include>>
+UC19 ..> UC44 : <<include>>
+
+' Extend Relationships
+UC13 ..> UC14 : <<extend>>
+UC27 ..> UC26 : <<extend>>
+UC12 ..> UC11 : <<extend>>
+UC20 ..> UC19 : <<extend>>
+
+' System Interactions
+UC31 --> CIC : query
+UC42 --> Notification : send
+UC5 --> Gateway : payment
+UC28 --> Gateway : disburse
+
+' Automated System Relations
+UC43 --> UC13 : triggers
+UC43 --> UC33 : triggers
+UC44 --> UC19 : automates
+
+note right of UC43
+  Job chạy tự động
+  hàng ngày lúc 00:00
+end note
+
+note right of UC41
+  Tính toán tự động
+  dựa trên lịch sử
+  giao dịch
+end note
+
+@enduml
+

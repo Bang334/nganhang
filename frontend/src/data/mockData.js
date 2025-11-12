@@ -12,6 +12,39 @@ export const roles = [
   { role_id: 3, role_name: 'LOAN_OFFICER', description: 'Cán bộ tín dụng' },
 ];
 
+// Helper: get account details (including owner) by account number
+export const getAccountDetailsByNumber = (accountNumber) => {
+  if (!accountNumber) return null;
+
+  const account = accounts.find(
+    (acc) => acc.account_number === accountNumber.trim()
+  );
+
+  if (!account) return null;
+
+  const customer = customers.find((cust) => cust.customer_id === account.customer_id);
+  const accountType = accountTypes.find(
+    (type) => type.account_type_id === account.account_type_id
+  );
+  const branch = branches.find((b) => b.branch_id === account.branch_id);
+
+  return {
+    accountId: account.account_id,
+    accountNumber: account.account_number,
+    accountTypeId: account.account_type_id,
+    accountTypeName: accountType?.type_name || 'Tài khoản',
+    branchId: account.branch_id,
+    branchName: branch?.branch_name || 'Chi nhánh',
+    balance: account.balance,
+    status: account.status,
+    ownerId: customer?.customer_id || null,
+    ownerCode: customer?.customer_code || '',
+    ownerName: customer?.full_name || 'Khách hàng',
+    ownerPhone: customer?.phone || '',
+    ownerIdCard: customer?.id_card_number || '',
+  };
+};
+
 // Chi nhánh
 export const branches = [
   {
@@ -1314,7 +1347,7 @@ export const systemStats = {
   totalDeposits: accounts.reduce((sum, acc) => sum + acc.balance, 0),
   totalLoans: loans.reduce((sum, loan) => sum + (loan.outstanding_balance || 0), 0),
   totalSavings: savingsDeposits.reduce((sum, dep) => sum + dep.principal_amount, 0),
-  activeLoans: loans.filter(l => l.status === 'ACTIVE' || l.status === 'DISBURSED').length,
+  activeLoans: loans.filter(l => l.status === 'ACTIVE').length,
   pendingLoans: loans.filter(l => l.status === 'PENDING').length,
   activeSavings: savingsDeposits.filter(s => s.status === 'ACTIVE').length,
   totalBranches: branches.length,

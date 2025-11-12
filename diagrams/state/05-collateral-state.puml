@@ -1,0 +1,37 @@
+@startuml Collateral State Diagram
+title State Diagram - Tài Sản Thế Chấp (Collaterals)
+
+[*] --> PENDING : Khách hàng đăng ký tài sản
+
+PENDING --> REJECTED : Nhân viên từ chối
+PENDING --> AVAILABLE : Nhân viên duyệt
+
+AVAILABLE --> IN_USE : Sử dụng cho khoản vay
+
+IN_USE --> AVAILABLE : Khoản vay kết thúc\n(Giải phóng tài sản)
+IN_USE --> IN_USE : Vẫn đang thế chấp
+
+REJECTED --> [*] : Kết thúc
+
+AVAILABLE --> [*] : Không sử dụng
+
+note right of PENDING
+  **Chờ duyệt:**
+  - Khách hàng nộp giấy tờ
+  - Chờ thẩm định giá trị
+end note
+
+note right of IN_USE
+  **Đang sử dụng:**
+  - Đang thế chấp cho khoản vay
+  - Không thể dùng cho vay khác
+end note
+
+note right of AVAILABLE
+  **Sẵn sàng:**
+  - Đã được duyệt
+  - Có thể dùng cho vay mới
+end note
+
+@enduml
+

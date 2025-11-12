@@ -9,22 +9,22 @@ database "Database" as DB
 
 Customer -> Teller: Yêu cầu mở tài khoản
 Teller -> System: Nhập thông tin KH\n(CMND, email, SĐT, thu nhập)
-System -> DB: Kiểm tra thông tin trùng lặp
-DB --> System: Kết quả kiểm tra
+System -> DB: Tra cứu xem khách đã tồn tại chưa
+DB --> System: Trả về kết quả tra cứu
 
 alt Thông tin hợp lệ
     Teller -> System: Chọn loại tài khoản\nvà số tiền nạp ban đầu
     System -> System: Validate số tiền\n(min 100K)
     
     Teller -> System: Xác nhận tạo tài khoản
-    System -> DB: Tạo Customer
-    DB --> System: customer_id
+    System -> DB: Lưu hồ sơ khách hàng mới
+    DB --> System: Ghi nhận mã khách hàng
     
-    System -> DB: Tạo Account
-    DB --> System: account_id
+    System -> DB: Lưu thông tin tài khoản mới
+    DB --> System: Ghi nhận số tài khoản
     
-    System -> DB: Tạo Transaction\n(Nạp tiền ban đầu)
-    DB --> System: transaction_id
+    System -> DB: Ghi sổ giao dịch nạp ban đầu
+    DB --> System: Xác nhận lập giao dịch
     
     System --> Teller: Thành công\n(Số tài khoản)
     Teller --> Customer: Giao số tài khoản\nvà sổ tài khoản

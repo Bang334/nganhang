@@ -1,4 +1,4 @@
-@startuml Mở Sổ Tiết Kiệm
+@startuml Mở Tiết Kiệm
 title Activity Diagram - Mở Sổ Tiết Kiệm
 
 |Khách hàng|
@@ -7,65 +7,42 @@ start
 :Chọn "Gửi tiết kiệm";
 
 |Hệ thống|
-:Load lãi suất tiết kiệm;
-:Hiển thị các kỳ hạn;
+:Hiển thị lãi suất;
 note right
-- 1 tháng: 2%/năm
-- 3 tháng: 3%/năm
-- 6 tháng: 4.5%/năm
-- 12 tháng: 6%/năm
+1 tháng: 2%/năm
+3 tháng: 3%/năm
+6 tháng: 4.5%/năm
+12 tháng: 6%/năm
 end note
 
 |Khách hàng|
 :Nhập số tiền gửi;
 :Chọn kỳ hạn;
 :Chọn phương thức nhận lãi;
-note right
-- Nhận lãi định kỳ
-- Nhận lãi cuối kỳ
-- Tái tục gốc + lãi
-end note
 
 |Hệ thống|
 :Tính lãi dự kiến;
-note right
-Lãi đơn: P × r × t
-Lãi kép: P × (1+r)^t - P
-end note
-
 :Hiển thị preview;
 
 |Khách hàng|
-:Xác nhận mở sổ;
+:Xác nhận;
 
 |Hệ thống|
-if (Số tiền >= 1M?) then (không)
-  |Khách hàng|
-  :Lỗi: Tối thiểu 1M VND;
-  stop
-else (có)
-  |Hệ thống|
-  :Kiểm tra số dư tài khoản;
-  
-  if (Số dư TK đủ?) then (không)
-    :Hủy giao dịch;
-    |Khách hàng|
-    :Lỗi: Số dư không đủ;
-    stop
-  else (có)
-    |Hệ thống|
-    :Trừ tiền từ tài khoản thanh toán;
-    :Tạo sổ tiết kiệm mới;
-    :Ghi nhận giao dịch mở sổ;
-    :Cập nhật số dư tài khoản;
+if (Số tiền >= 1M?) then (có)
+  if (Số dư TK đủ?) then (có)
+    :Trừ tiền từ TK thanh toán;
+    :Tạo sổ tiết kiệm;
+    :Ghi nhận giao dịch;
     
     |Khách hàng|
-    :Hiển thị số sổ tiết kiệm;
-    :Hiển thị ngày đáo hạn;
-    :Hiển thị lãi dự kiến;
-    stop
+    :Nhận số sổ;
+    :Xem ngày đáo hạn và lãi dự kiến;
+  else (không)
+    :Lỗi: Số dư không đủ;
   endif
+else (không)
+  :Lỗi: Tối thiểu 1M;
 endif
+stop
 
 @enduml
-

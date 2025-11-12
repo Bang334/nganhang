@@ -1,0 +1,58 @@
+@startuml
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor "Teller" as Teller
+
+rectangle "Quản lý khách hàng" {
+  usecase "Đăng ký khách hàng mới" as UC_RegisterCustomer
+  usecase "Tra cứu khách hàng" as UC_SearchCustomer
+  usecase "Cập nhật thông tin khách hàng" as UC_UpdateCustomer
+}
+
+rectangle "Quản lý tài khoản" {
+  usecase "Mở tài khoản" as UC_OpenAccount
+  usecase "Đóng tài khoản" as UC_CloseAccount
+  usecase "Đóng băng/Mở băng tài khoản" as UC_FreezeAccount
+}
+
+rectangle "Giao dịch tại quầy" {
+  usecase "Nạp tiền" as UC_Deposit
+  usecase "Rút tiền" as UC_Withdraw
+  usecase "In biên lai" as UC_PrintReceipt
+}
+
+rectangle "Quản lý thẻ" {
+  usecase "Kích hoạt thẻ" as UC_ActivateCard
+  usecase "Khóa thẻ" as UC_LockCard
+  usecase "Làm lại thẻ" as UC_ReissueCard
+}
+
+rectangle "Quản lý tiết kiệm" {
+  usecase "Mở sổ tiết kiệm" as UC_OpenSavings
+  usecase "Xử lý đáo hạn tiết kiệm" as UC_HandleMaturity
+  usecase "Xử lý rút trước hạn" as UC_HandleEarlyWithdrawal
+}
+
+Teller --> UC_RegisterCustomer
+Teller --> UC_SearchCustomer
+Teller --> UC_UpdateCustomer
+
+Teller --> UC_OpenAccount
+Teller --> UC_CloseAccount
+Teller --> UC_FreezeAccount
+
+Teller --> UC_Deposit
+Teller --> UC_Withdraw
+Teller --> UC_PrintReceipt
+
+Teller --> UC_ActivateCard
+Teller --> UC_LockCard
+Teller --> UC_ReissueCard
+
+Teller --> UC_OpenSavings
+Teller --> UC_HandleMaturity
+Teller --> UC_HandleEarlyWithdrawal
+@enduml

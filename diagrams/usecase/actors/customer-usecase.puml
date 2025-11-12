@@ -1,0 +1,62 @@
+@startuml
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor "Customer" as Customer
+
+rectangle "Tài khoản" {
+  usecase "Đăng nhập" as UC_Login
+  usecase "Xem tài khoản" as UC_ViewAccounts
+  usecase "Cập nhật hồ sơ" as UC_UpdateProfile
+}
+
+rectangle "Giao dịch" {
+  usecase "Chuyển khoản nội bộ" as UC_InternalTransfer
+  usecase "Chuyển khoản liên ngân hàng" as UC_ExternalTransfer
+  usecase "Xem lịch sử giao dịch" as UC_ViewTransactions
+}
+
+rectangle "Tiết kiệm" {
+  usecase "Mở sổ tiết kiệm" as UC_OpenSavings
+  usecase "Xem lãi dự kiến" as UC_ViewInterest
+  usecase "Xử lý đáo hạn tiết kiệm" as UC_HandleMaturity
+  usecase "Rút trước hạn" as UC_EarlyWithdrawal
+}
+
+rectangle "Vay vốn" {
+  usecase "Đăng ký khoản vay" as UC_ApplyLoan
+  usecase "Đăng ký tài sản thế chấp" as UC_RegisterCollateral
+  usecase "Xem lịch trả nợ" as UC_ViewRepayment
+  usecase "Trả nợ" as UC_MakePayment
+  usecase "Xử lý đáo hạn vay" as UC_HandleLoanMaturity
+}
+
+rectangle "Tín dụng" {
+  usecase "Xem điểm tín dụng" as UC_ViewCreditScore
+  usecase "Xem lịch sử điểm" as UC_ViewScoreHistory
+}
+
+Customer --> UC_Login
+Customer --> UC_ViewAccounts
+Customer --> UC_UpdateProfile
+
+Customer --> UC_InternalTransfer
+Customer --> UC_ExternalTransfer
+Customer --> UC_ViewTransactions
+
+Customer --> UC_OpenSavings
+Customer --> UC_ViewInterest
+Customer --> UC_HandleMaturity
+Customer --> UC_EarlyWithdrawal
+
+Customer --> UC_ApplyLoan
+Customer --> UC_RegisterCollateral
+Customer --> UC_ViewRepayment
+Customer --> UC_MakePayment
+Customer --> UC_HandleLoanMaturity
+
+Customer --> UC_ViewCreditScore
+Customer --> UC_ViewScoreHistory
+@enduml

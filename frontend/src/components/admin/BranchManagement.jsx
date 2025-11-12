@@ -8,7 +8,7 @@ const BranchManagement = () => {
   const [selectedBranch, setSelectedBranch] = useState(null);
   
   // Get branches with full details
-  const branches = getBranchesWithDetails();
+  const branches = getBranchesWithDetails() || [];
 
   const handleAddBranch = () => {
     setSelectedBranch(null);

@@ -1,0 +1,52 @@
+@startuml
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor "Administrator" as Admin
+
+rectangle "Quản lý chi nhánh" {
+  usecase "Xem danh sách chi nhánh" as UC_ViewBranches
+  usecase "Thêm chi nhánh" as UC_AddBranch
+  usecase "Sửa chi nhánh" as UC_EditBranch
+  usecase "Xóa chi nhánh" as UC_DeleteBranch
+}
+
+rectangle "Quản lý nhân viên" {
+  usecase "Xem danh sách nhân viên" as UC_ViewEmployees
+  usecase "Thêm nhân viên" as UC_AddEmployee
+  usecase "Sửa nhân viên" as UC_EditEmployee
+  usecase "Phân quyền" as UC_AssignRoles
+}
+
+rectangle "Cấu hình hệ thống" {
+  usecase "Cấu hình lãi suất" as UC_ConfigInterest
+  usecase "Cấu hình phí" as UC_ConfigFees
+  usecase "Cấu hình hạn mức" as UC_ConfigLimits
+}
+
+rectangle "Báo cáo tổng hợp" {
+  usecase "Dashboard tổng quan" as UC_SystemDashboard
+  usecase "So sánh chi nhánh" as UC_CompareBranches
+  usecase "Báo cáo doanh thu" as UC_RevenueReport
+}
+
+Admin --> UC_ViewBranches
+Admin --> UC_AddBranch
+Admin --> UC_EditBranch
+Admin --> UC_DeleteBranch
+
+Admin --> UC_ViewEmployees
+Admin --> UC_AddEmployee
+Admin --> UC_EditEmployee
+Admin --> UC_AssignRoles
+
+Admin --> UC_ConfigInterest
+Admin --> UC_ConfigFees
+Admin --> UC_ConfigLimits
+
+Admin --> UC_SystemDashboard
+Admin --> UC_CompareBranches
+Admin --> UC_RevenueReport
+@enduml

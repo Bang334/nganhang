@@ -1,0 +1,106 @@
+@startuml Thẩm định và Phê duyệt Vay
+title Activity Diagram - Thẩm định Khoản Vay
+
+|Nhân viên Tín dụng|
+start
+:Đăng nhập;
+:Chọn hồ sơ chờ duyệt;
+
+|Hệ thống|
+:Hiển thị thông tin hồ sơ;
+:Lấy điểm tín dụng hiện tại;
+:Hiển thị điểm tín dụng và hạng;
+:Hiển thị thông tin khách hàng;
+:Hiển thị thông tin khoản vay;
+:Hiển thị tài sản thế chấp (nếu có);
+
+|Nhân viên Tín dụng|
+:Xem xét hồ sơ;
+
+partition "Phân tích hồ sơ" {
+  |Hệ thống|
+  
+  if (Có tài sản thế chấp?) then (có)
+    |Nhân viên Tín dụng|
+    :Kiểm tra giấy tờ tài sản;
+    :Thẩm định giá trị;
+    :Nhập giá trị thẩm định;
+    
+    |Hệ thống|
+    :Tính LTV = (Số tiền vay / Giá trị tài sản) × 100;
+    :Hiển thị LTV trên giao diện;
+    
+    if (LTV <= 70%?) then (có)
+      :Hiển thị ✅ LTV hợp lệ;
+      note right
+      LTV ≤ 70% (màu xanh)
+      end note
+    else (không)
+      :Hiển thị ⚠️ LTV vượt quá;
+      note right
+      LTV > 70% (màu đỏ)
+      Cảnh báo rủi ro cao
+      end note
+    endif
+    
+  else (không)
+    |Hệ thống|
+    :Tính lãi suất đề xuất dựa trên Credit Score;
+    note right
+    - Score >= 700 → 9%/năm
+    - Score >= 600 → 10%/năm
+    - Score < 600 → 12%/năm
+    end note
+    
+    :Hiển thị Credit Score và hạng;
+    :Hiển thị thu nhập/tháng;
+    :Hiển thị tỷ lệ nợ/thu nhập;
+    
+    if (Tỷ lệ nợ > 50%?) then (có)
+      :Đánh dấu màu đỏ (cảnh báo);
+      note right
+      ⚠️ Tỷ lệ nợ cao
+      end note
+    else (không)
+      :Đánh dấu màu xanh (tốt);
+    endif
+    
+  endif
+}
+
+partition "Quyết định" {
+  |Nhân viên Tín dụng|
+  
+  if (Quyết định?) then (Phê duyệt)
+    :Nhập số tiền duyệt;
+    :Nhập lãi suất;
+    :Nhập thời hạn;
+    
+    |Hệ thống|
+    :Cập nhật thông tin khoản vay;
+    :Tạo lịch trả nợ;
+    
+    if (Khoản vay đầu tiên?) then (có)
+      :Tăng điểm tín dụng +5;
+      :Lưu vào CreditScoreHistory;
+    endif
+    
+    :Gửi thông báo phê duyệt;
+    
+  else (Từ chối)
+    :Nhập lý do từ chối;
+    
+    |Hệ thống|
+    :Cập nhật trạng thái (Từ chối);
+    
+    if (Có thế chấp?) then (có)
+      :Giải phóng tài sản;
+    endif
+    
+    :Gửi thông báo từ chối;
+  endif
+}
+
+stop
+
+@enduml
