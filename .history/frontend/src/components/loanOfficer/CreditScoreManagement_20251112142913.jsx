@@ -389,179 +389,133 @@ const CreditScoreManagement = () => {
       </div>
 
       {/* Credit Score Table */}
-      <div className="teller-card">
-        <div className="teller-card-header" style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderBottom: '2px solid #764ba2'
-        }}>
-          <h3 style={{color: 'white'}}>
-            Danh sách điểm tín dụng ({filteredScores.length})
-          </h3>
-        </div>
-        <div className="teller-card-body" style={{padding: 0}}>
-          {filteredScores.length === 0 ? (
-            <div style={{padding: '3rem', textAlign: 'center'}}>
-              <Search size={64} style={{color: '#d1d5db', margin: '0 auto 1rem'}} />
-              <h4 style={{color: '#6b7280', marginBottom: '0.5rem'}}>Không tìm thấy khách hàng</h4>
-              <p style={{color: '#9ca3af', fontSize: '0.875rem'}}>
-                Thử điều chỉnh bộ lọc để tìm kiếm khách hàng khác
-              </p>
-            </div>
-          ) : (
-            <div className="teller-table">
-              <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                <thead>
-                  <tr style={{background: '#f8fafc', borderBottom: '2px solid #e2e8f0'}}>
-                    <th style={{padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#374151'}}>Khách hàng</th>
-                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Điểm tín dụng</th>
-                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Hạng</th>
-                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Lãi suất</th>
-                    <th style={{padding: '1rem', textAlign: 'right', fontWeight: 600, color: '#374151'}}>Dư nợ</th>
-                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Tỷ lệ trả đúng hạn</th>
-                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Xu hướng</th>
-                    <th style={{padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#374151'}}>Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredScores.map((customer, index) => {
-                    const scoreChange = customer.scoreChange || 0;
-                    const isScoreUp = scoreChange >= 0;
-                    
-                    return (
-                      <tr 
-                        key={customer.customerId}
-                        style={{
-                          borderBottom: '1px solid #e5e7eb',
-                          background: index % 2 === 0 ? '#ffffff' : '#f9fafb',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#f3f4f6';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = index % 2 === 0 ? '#ffffff' : '#f9fafb';
-                        }}
-                      >
-                        <td style={{padding: '1rem'}}>
-                          <div style={{fontWeight: 600, color: '#1f2937'}}>{customer.customerName}</div>
-                          <div style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem'}}>{customer.customerCode}</div>
-                        </td>
-                        <td style={{padding: '1rem', textAlign: 'center'}}>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{
-                              fontSize: '1.75rem',
-                              fontWeight: 'bold',
-                              color: getScoreColor(customer.creditScore),
-                            }}>
-                              {customer.creditScore}
-                            </div>
-                            <div style={{
-                              width: '80px',
-                              height: '8px',
-                              background: '#e5e7eb',
-                              borderRadius: '4px',
-                              overflow: 'hidden',
-                            }}>
-                              <div style={{
-                                width: `${Math.min(((customer.creditScore - 300) / (850 - 300)) * 100, 100)}%`,
-                                height: '100%',
-                                background: getScoreColor(customer.creditScore),
-                                transition: 'width 0.3s ease'
-                              }} />
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{padding: '1rem', textAlign: 'center'}}>
-                          <span 
-                            className="badge"
-                            style={{
-                              background: customer.creditGrade.startsWith('AAA') || customer.creditGrade.startsWith('AA') ? '#10b981' :
-                                         customer.creditGrade.startsWith('A') || customer.creditGrade.startsWith('BBB') ? '#3b82f6' :
-                                         customer.creditGrade.startsWith('BB') || customer.creditGrade.startsWith('B') ? '#f59e0b' : '#ef4444',
-                              color: 'white',
-                              padding: '0.375rem 0.75rem',
-                              borderRadius: '9999px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600
-                            }}
-                          >
-                            {customer.creditGrade}
-                          </span>
-                        </td>
-                        <td style={{padding: '1rem', textAlign: 'center'}}>
-                          <div>
-                            <span style={{
-                              fontSize: '1rem',
-                              fontWeight: 700,
-                              color: '#1f2937'
-                            }}>{customer.interestRate}%</span>
-                            <span style={{fontSize: '0.75rem', color: '#6b7280', marginLeft: '0.25rem'}}>/năm</span>
-                          </div>
-                        </td>
-                        <td style={{padding: '1rem', textAlign: 'right'}}>
-                          {customer.totalOutstandingDebt > 0 ? (
-                            <div>
-                              <div style={{fontWeight: 600, color: '#1f2937'}}>{formatCurrency(customer.totalOutstandingDebt)}</div>
-                              <div style={{fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem'}}>
-                                Nợ/Thu nhập: {customer.debtToIncomeRatio}%
-                              </div>
-                            </div>
-                          ) : (
-                            <span style={{color: '#10b981', fontWeight: 600}}>Không có nợ</span>
-                          )}
-                        </td>
-                        <td style={{padding: '1rem', textAlign: 'center'}}>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <div style={{
-                                width: '60px',
-                                height: '8px',
-                                background: '#e5e7eb',
-                                borderRadius: '4px',
-                                overflow: 'hidden',
-                              }}>
-                                <div style={{
-                                  width: `${customer.onTimePaymentRate}%`,
-                                  height: '100%',
-                                  background: customer.onTimePaymentRate >= 95 ? '#10b981' :
-                                             customer.onTimePaymentRate >= 80 ? '#f59e0b' : '#ef4444',
-                                  transition: 'width 0.3s ease'
-                                }} />
-                              </div>
-                              <span style={{fontSize: '0.875rem', fontWeight: 600, color: '#374151'}}>{customer.onTimePaymentRate}%</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{padding: '1rem', textAlign: 'center'}}>
+      <div className="card">
+        <div className="table-responsive">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Khách hàng</th>
+                <th>Điểm tín dụng</th>
+                <th>Hạng</th>
+                <th>Lãi suất</th>
+                <th>Dư nợ hiện tại</th>
+                <th>Tỷ lệ trả đúng hạn</th>
+                <th>Xu hướng</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredScores.length === 0 ? (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                    Không tìm thấy khách hàng nào
+                  </td>
+                </tr>
+              ) : (
+                filteredScores.map((customer) => {
+                  const scoreChange = customer.scoreChange || 0;
+                  const isScoreUp = scoreChange >= 0;
+                  
+                  return (
+                    <tr key={customer.customerId}>
+                      <td>
+                        <div>
+                          <div className="font-medium">{customer.customerName}</div>
+                          <div className="text-xs text-secondary">{customer.customerCode}</div>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.25rem',
-                            color: isScoreUp ? '#10b981' : '#ef4444',
-                            fontSize: '0.875rem',
-                            fontWeight: '600',
+                            fontSize: '1.5rem',
+                            fontWeight: 'bold',
+                            color: getScoreColor(customer.creditScore),
                           }}>
-                            {isScoreUp ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                            <span>{isScoreUp ? '+' : ''}{scoreChange}</span>
+                            {customer.creditScore}
                           </div>
-                        </td>
-                        <td style={{padding: '1rem', textAlign: 'center'}}>
-                          <button
-                            className="teller-btn teller-btn-primary"
-                            style={{padding: '0.5rem 1rem', fontSize: '0.875rem'}}
-                            onClick={() => handleViewDetail(customer)}
-                          >
-                            <Eye size={14} /> Chi tiết
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                          <div style={{
+                            width: '60px',
+                            height: '6px',
+                            background: '#e5e7eb',
+                            borderRadius: '3px',
+                            overflow: 'hidden',
+                          }}>
+                            <div style={{
+                              width: `${((customer.creditScore - 300) / (850 - 300)) * 100}%`,
+                              height: '100%',
+                              background: getScoreColor(customer.creditScore),
+                            }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`badge ${getGradeBadgeColor(customer.creditGrade)}`}>
+                          {customer.creditGrade}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="font-semibold">{customer.interestRate}%</span>
+                        <span className="text-xs text-secondary">/năm</span>
+                      </td>
+                      <td>
+                        {customer.totalOutstandingDebt > 0 ? (
+                          <div>
+                            <div className="font-medium">{formatCurrency(customer.totalOutstandingDebt)}</div>
+                            <div className="text-xs text-secondary">
+                              Nợ/Thu nhập: {customer.debtToIncomeRatio}%
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-success">Không có nợ</span>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <div style={{
+                            width: '50px',
+                            height: '6px',
+                            background: '#e5e7eb',
+                            borderRadius: '3px',
+                            overflow: 'hidden',
+                          }}>
+                            <div style={{
+                              width: `${customer.onTimePaymentRate}%`,
+                              height: '100%',
+                              background: customer.onTimePaymentRate >= 95 ? '#10b981' :
+                                         customer.onTimePaymentRate >= 80 ? '#f59e0b' : '#ef4444',
+                            }} />
+                          </div>
+                          <span className="text-sm">{customer.onTimePaymentRate}%</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          color: isScoreUp ? '#10b981' : '#ef4444',
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                        }}>
+                          {isScoreUp ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                          {isScoreUp ? '+' : ''}{scoreChange}
+                        </div>
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={() => handleViewDetail(customer)}
+                        >
+                          <Eye size={16} />
+                          Chi tiết
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

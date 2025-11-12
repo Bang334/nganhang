@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Eye, Search, Calendar, Filter, X } from 'lucide-react';
-import { formatCurrency } from '../../data/mockData';
+import { formatCurrency, formatDate, getApprovedLoansWithDetails } from '../../data/mockData';
 import LoanDetailModal from './LoanDetailModal';
 import '../../styles/TellerDashboard.css';
 
@@ -18,200 +18,7 @@ const ApprovedLoans = () => {
     dateTo: '',
   });
 
-  const approvedLoans = [
-    {
-      id: 1,
-      loanNumber: 'LN002345',
-      customerName: 'Nguyễn Văn A',
-      customerCode: 'KH001234',
-      customerPhone: '0901111111',
-      customerEmail: 'nguyenvana@email.com',
-      customerAddress: '123 Nguyễn Huệ, Quận 1, TP.HCM',
-      customerOccupation: 'Kỹ sư phần mềm',
-      customerMonthlyIncome: 25000000,
-      debtRatio: 35,
-      creditScore: 750,
-      creditGrade: 'A',
-      employmentStatus: 'STABLE',
-      loanType: 'Vay mua nhà',
-      loanAmount: 2000000000,
-      termMonths: 240,
-      interestRate: 8.5,
-      purpose: 'Mua căn hộ chung cư',
-      submissionDate: '2025-10-15T10:00:00',
-      status: 'APPROVED',
-      approvedDate: '20/10/2025',
-      approvedBy: 'Nguyễn Thị Loan',
-      disbursementStatus: 'Đã giải ngân',
-      ltvRatio: 65,
-      collateralType: 'Bất động sản',
-      collateralName: 'Căn hộ chung cư',
-      collateralAddress: '123 Nguyễn Huệ, Quận 1, TP.HCM',
-      collateralCertificate: 'SH-2025-00123',
-      collateralValue: 3100000000,
-      appraisedValue: 3080000000,
-      appraisedBy: 'Công ty TNHH Thẩm định giá ABC',
-      appraisedDate: '2025-10-12',
-      documents: [
-        { name: 'CMND/CCCD', status: 'VERIFIED' },
-        { name: 'Sổ hộ khẩu', status: 'VERIFIED' },
-        { name: 'Sổ hồng nhà đất', status: 'VERIFIED' },
-        { name: 'Báo cáo thẩm định giá', status: 'COMPLETED' },
-        { name: 'Hợp đồng mua bán', status: 'VERIFIED' },
-      ],
-      notes: 'Hồ sơ đầy đủ, điểm tín dụng tốt, tài sản thế chấp đủ giá trị. Đã duyệt và giải ngân thành công.',
-    },
-    {
-      id: 2,
-      loanNumber: 'LN002338',
-      customerName: 'Trần Thị B',
-      customerCode: 'KH005678',
-      customerPhone: '0902222222',
-      customerEmail: 'tranthib@email.com',
-      customerAddress: '456 Lê Lợi, Quận 1, TP.HCM',
-      customerOccupation: 'Giáo viên',
-      customerMonthlyIncome: 15000000,
-      debtRatio: 42,
-      creditScore: 680,
-      creditGrade: 'B',
-      employmentStatus: 'STABLE',
-      loanType: 'Vay tiêu dùng',
-      loanAmount: 100000000,
-      termMonths: 36,
-      interestRate: 12.0,
-      purpose: 'Mua sắm và chi tiêu cá nhân',
-      submissionDate: '2025-10-18T14:00:00',
-      status: 'APPROVED',
-      approvedDate: '22/10/2025',
-      approvedBy: 'Nguyễn Thị Loan',
-      disbursementStatus: 'Chờ giải ngân',
-      ltvRatio: 0,
-      documents: [
-        { name: 'CMND/CCCD', status: 'VERIFIED' },
-        { name: 'Sổ hộ khẩu', status: 'VERIFIED' },
-        { name: 'Hợp đồng lao động', status: 'VERIFIED' },
-        { name: 'Bảng lương 6 tháng', status: 'VERIFIED' },
-      ],
-      notes: 'Thu nhập ổn định, tỷ lệ nợ/thu nhập trong mức cho phép. Đã duyệt, đang chờ giải ngân.',
-    },
-    {
-      id: 3,
-      loanNumber: 'LN002330',
-      customerName: 'Lê Văn C',
-      customerCode: 'KH009876',
-      customerPhone: '0903333333',
-      customerEmail: 'levanc@email.com',
-      customerAddress: '789 Trần Hưng Đạo, Quận 5, TP.HCM',
-      customerOccupation: 'Chủ doanh nghiệp',
-      customerMonthlyIncome: 50000000,
-      debtRatio: 28,
-      creditScore: 720,
-      creditGrade: 'A',
-      employmentStatus: 'STABLE',
-      loanType: 'Vay kinh doanh',
-      loanAmount: 500000000,
-      termMonths: 60,
-      interestRate: 10.5,
-      purpose: 'Mở rộng sản xuất và nhập nguyên liệu',
-      submissionDate: '2025-10-10T09:00:00',
-      status: 'APPROVED',
-      approvedDate: '18/10/2025',
-      approvedBy: 'Nguyễn Thị Loan',
-      disbursementStatus: 'Đã giải ngân',
-      ltvRatio: 55,
-      collateralType: 'Bất động sản',
-      collateralName: 'Nhà xưởng sản xuất',
-      collateralAddress: '789 Trần Hưng Đạo, Quận 5, TP.HCM',
-      collateralCertificate: 'SD-2025-00456',
-      collateralValue: 900000000,
-      appraisedValue: 910000000,
-      appraisedBy: 'Công ty TNHH Thẩm định giá XYZ',
-      appraisedDate: '2025-10-08',
-      documents: [
-        { name: 'CMND/CCCD', status: 'VERIFIED' },
-        { name: 'Giấy phép kinh doanh', status: 'VERIFIED' },
-        { name: 'Báo cáo tài chính', status: 'VERIFIED' },
-        { name: 'Sổ đỏ nhà đất', status: 'VERIFIED' },
-        { name: 'Hợp đồng thuê mặt bằng', status: 'VERIFIED' },
-      ],
-      notes: 'Doanh nghiệp hoạt động tốt, tài sản thế chấp đủ giá trị. Đã duyệt và giải ngân.',
-    },
-    {
-      id: 4,
-      loanNumber: 'LN002325',
-      customerName: 'Phạm Thị D',
-      customerCode: 'KH011223',
-      customerPhone: '0904444444',
-      customerEmail: 'phamthid@email.com',
-      customerAddress: '321 Võ Văn Tần, Quận 3, TP.HCM',
-      customerOccupation: 'Bác sĩ',
-      customerMonthlyIncome: 30000000,
-      debtRatio: 38,
-      creditScore: 710,
-      creditGrade: 'A',
-      employmentStatus: 'STABLE',
-      loanType: 'Vay mua xe',
-      loanAmount: 600000000,
-      termMonths: 72,
-      interestRate: 9.5,
-      purpose: 'Mua xe ô tô phục vụ công việc',
-      submissionDate: '2025-10-12T11:00:00',
-      status: 'APPROVED',
-      approvedDate: '15/10/2025',
-      approvedBy: 'Nguyễn Thị Loan',
-      disbursementStatus: 'Đã giải ngân',
-      ltvRatio: 70,
-      collateralType: 'Phương tiện',
-      collateralName: 'Xe ô tô',
-      collateralAddress: 'N/A',
-      collateralCertificate: 'XE-2025-00789',
-      collateralValue: 850000000,
-      appraisedValue: 860000000,
-      appraisedBy: 'Công ty TNHH Thẩm định giá ABC',
-      appraisedDate: '2025-10-10',
-      documents: [
-        { name: 'CMND/CCCD', status: 'VERIFIED' },
-        { name: 'Sổ hộ khẩu', status: 'VERIFIED' },
-        { name: 'Hợp đồng lao động', status: 'VERIFIED' },
-        { name: 'Bảng lương 6 tháng', status: 'VERIFIED' },
-        { name: 'Hợp đồng mua xe', status: 'VERIFIED' },
-      ],
-      notes: 'Thu nhập cao và ổn định, LTV trong mức cho phép. Đã duyệt và giải ngân.',
-    },
-    {
-      id: 5,
-      loanNumber: 'LN002320',
-      customerName: 'Hoàng Văn E',
-      customerCode: 'KH013456',
-      customerPhone: '0905555555',
-      customerEmail: 'hoangvane@email.com',
-      customerAddress: '654 Điện Biên Phủ, Quận Bình Thạnh, TP.HCM',
-      customerOccupation: 'Kế toán trưởng',
-      customerMonthlyIncome: 20000000,
-      debtRatio: 45,
-      creditScore: 650,
-      creditGrade: 'B',
-      employmentStatus: 'STABLE',
-      loanType: 'Vay tiêu dùng',
-      loanAmount: 150000000,
-      termMonths: 48,
-      interestRate: 11.5,
-      purpose: 'Cải thiện nhà ở và mua sắm',
-      submissionDate: '2025-10-08T08:00:00',
-      status: 'APPROVED',
-      approvedDate: '12/10/2025',
-      approvedBy: 'Nguyễn Thị Loan',
-      disbursementStatus: 'Chờ giải ngân',
-      ltvRatio: 0,
-      documents: [
-        { name: 'CMND/CCCD', status: 'VERIFIED' },
-        { name: 'Sổ hộ khẩu', status: 'VERIFIED' },
-        { name: 'Hợp đồng lao động', status: 'VERIFIED' },
-        { name: 'Bảng lương 6 tháng', status: 'VERIFIED' },
-      ],
-      notes: 'Thu nhập ổn định, điểm tín dụng đạt yêu cầu. Đã duyệt, đang chờ giải ngân.',
-    },
-  ];
+  const approvedLoans = getApprovedLoansWithDetails();
 
   // Filtered loans
   const filteredLoans = useMemo(() => {
@@ -227,7 +34,7 @@ const ApprovedLoans = () => {
       }
 
       // Loan type filter
-      if (filters.loanType && loan.loanType !== filters.loanType) {
+      if (filters.loanType && (loan.loanType || loan.loanTypeName) !== filters.loanType) {
         return false;
       }
 
@@ -237,13 +44,26 @@ const ApprovedLoans = () => {
       }
 
       // Status filter
-      if (filters.status && loan.disbursementStatus !== filters.status) {
+      if (filters.status) {
+        const disbursementStatus = loan.disbursementDate ? 'Đã giải ngân' : 'Chờ giải ngân';
+        if (disbursementStatus !== filters.status) {
+          return false;
+        }
+      }
+
+      // Date From filter
+      if (filters.dateFrom && formatDate(loan.approvalDate) < filters.dateFrom) {
+        return false;
+      }
+
+      // Date To filter
+      if (filters.dateTo && formatDate(loan.approvalDate) > filters.dateTo) {
         return false;
       }
 
       return true;
     });
-  }, [filters]);
+  }, [filters, approvedLoans]);
 
   const handleViewDetail = (loan) => {
     setSelectedLoan(loan);
@@ -430,9 +250,12 @@ const ApprovedLoans = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredLoans.map((loan, index) => (
+                  {filteredLoans.map((loan, index) => {
+                    const disbursementStatus = loan.disbursementDate ? 'Đã giải ngân' : 'Chờ giải ngân';
+
+                    return (
                     <tr 
-                      key={loan.id}
+                      key={loan.loan_id || `${loan.loanNumber}-${index}`}
                       style={{
                         borderBottom: '1px solid #e5e7eb',
                         background: index % 2 === 0 ? '#ffffff' : '#f9fafb'
@@ -494,12 +317,12 @@ const ApprovedLoans = () => {
                           {loan.interestRate}%
                         </span>
                       </td>
-                      <td style={{padding: '1rem', color: '#374151', fontSize: '0.875rem'}}>{loan.approvedDate}</td>
+                      <td style={{padding: '1rem', color: '#374151', fontSize: '0.875rem'}}>{formatDate(loan.approvedDate)}</td>
                       <td style={{padding: '1rem', textAlign: 'center'}}>
                         <span 
                           className="badge"
                           style={{
-                            background: loan.disbursementStatus === 'Đã giải ngân' ? '#10b981' : '#f59e0b',
+                            background: disbursementStatus === 'Đã giải ngân' ? '#10b981' : '#f59e0b',
                             color: 'white',
                             padding: '0.25rem 0.75rem',
                             borderRadius: '9999px',
@@ -507,7 +330,7 @@ const ApprovedLoans = () => {
                             fontWeight: 600
                           }}
                         >
-                          {loan.disbursementStatus}
+                          {disbursementStatus}
                         </span>
                       </td>
                       <td style={{padding: '1rem', textAlign: 'center'}}>
@@ -520,7 +343,8 @@ const ApprovedLoans = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
